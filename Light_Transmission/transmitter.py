@@ -4,11 +4,11 @@ from gpiozero import LightSensor
 import threading
 from queue import Queue
 
-abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-LONG = 1
-SHORT = 0.5
-EOB = ".-..-."
-SEPERATOR = "-..-."
+abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"] #abc enum for checksum
+LONG = 1 # long delay -> -
+SHORT = 0.5 # short delay -> .
+EOB = "-..-." # /
+SEPERATOR = "-..-.." # #
 
 def timedelta(q):
 	start = time.time()
@@ -18,55 +18,86 @@ def timedelta(q):
 class Transmitter:
 
 	def __init__(self, pin1=17, pin2=18):
-		self.led = PWMLED(pin1)
-		self.ldr = LightSensor(pin2)
-		self.pin1 = pin1
-		self.pin2 = pin2
+		self.led = PWMLED(pin1) #setting up led pin
+		self.ldr = LightSensor(pin2) # setting up lightsensor pin
+		self.pin1 = int(pin1) # LED
+		self.pin2 = int(pin2) # LightSensor
 		self.led.value = 0
 		
-	def blink(self, delay):
-		self.led.value = 0
-		self.led.value = 1
+	def __blink(self, delay): # declaring private method
+		delay = float(delay) # important - 0.5 --> 0
+		self.led.value = 0 # turn led off 
+		self.led.value = 1 # turn led on
 		sleep(delay)
 		self.led.value = 0
 		
+	def decrypt(self, msg):
+		msg = str(msg)
+		dec = ""
+		tmp = ""
+		for c in msg:
+			if c == "/":
+				dec += " "
+			elif c == " ":
+				dec += morse[tmp]
+				tmp = ""
+			else:
+				tmp += c
+		dec += morse[tmp]
+		return(dec)
+		
 	
-	def eval_sig(self, sig):
+	def __send(self, sig): # declaring private send method
+			sig = str(sig)
 			if sig == ".":
-				self.blink(SHORT)
+				self.__blink(SHORT)
 			elif sig == "-":
-				self.blink(LONG)
+				self.__blink(LONG)
+			elif sig == "/":
+				for sig in EOB: # could hang program - sorry
+					self.__send(sig)
 				
 	def send(self, morse):
-		for sig in morse:
-			self.eval_sig(sig) # / needs to be interpreted and end of one char needs to be clear
-		for sig in SEPERATOR:
-			self.eval_sig(sig)
-		checksum = str(self.checksum(msg))
-		for sig in checksum:
-			self.eval_sig(sig)
+		morse = str(morse)
+		for i in range(0,2) # sending msg two times
+			for sig in morse:
+				self.__send(sig) 
+			for sig in SEPERATOR:
+				self.__send(sig)
+			checksum = str(self.checksum(msg))
+			for sig in checksum:
+				self.__send(sig)
+			sleep(1)
 		return(0)
 		
+def __recv(self):
+		while not SEPERATOR in msg: # receiving until message  block (packet) ends
+			q = Queue()
+			clock = threading.Thread(target=timedelta, args=(q,))
+			while self.ldr.value < 0.5: pass		#0=dark, 1=light
+			clock.start()
+			while self.ldr.value > 0.5: pass
+			q.put("stop")
+			q.join()
+			if q.get() in range(0.3, 0.7): #time in seconds
+				msg += "."
+			elif q.get() in range(0.8, 1.3):
+				msg += "-"
+			else:
+				pass
+		msg = msg.replace(EOB, "/").replace(SEPERATOR, "") # removing seperators from message
+		return(msg)
+		
 	def recv(self):
-
-		while not SEPERATOR in msg:
-				q = Queue()
-				clock = threading.Thread(target=timedelta, args=(q,))
-				while self.ldr.value < 0.5: pass		#0=dark, 1=light
-				clock.start()
-				while self.ldr.value > 0.5: pass
-				q.put("stop")
-				q.join()
-				if q.get() in range(0.3, 0.7): #time in seconds
-					msg += "."
-				elif q.get() in range(0.8, 1.3):
-					msg += "-"
-				else:
-					pass
-		return(0)
+		# receiving msg
+		for i in range(0, 2): # receiving 2 times to avoid packet loss - but it is still possible
+			msg = __recv()
+			checksum = __recv()
+			if self.checksum(self.decrypt(msg)) == check: return(msg) # if checksum matches return message
+		return(-1) # if checksum doesnt match return an error
 	
 	def checksum(self, msg):
-		msg = msg.upper()
+		msg = str(msg.upper()) # making message uppercase (not every char is in abc - yet)
 		sum = 0
 		for c in msg:
 			for i in range(0, len(abc)):

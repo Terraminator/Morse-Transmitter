@@ -17,19 +17,6 @@ def encrypt(msg):
 				enc += abc[c.upper()] + " "
 	return(enc)
 
-def decrypt(msg):
-	dec = ""
-	tmp = ""
-	for c in msg:
-		if c == "/":
-			dec += " "
-		elif c == " ":
-			dec += morse[tmp]
-			tmp = ""
-		else:
-			tmp += c
-	dec += morse[tmp]
-	return(dec)
 	
 if __name__ == "__main__":
 	mitter = Transmitter(17)
