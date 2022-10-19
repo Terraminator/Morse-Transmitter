@@ -3,6 +3,7 @@ from time import time, sleep
 from gpiozero import LightSensor
 import threading
 from queue import Queue
+import numpy as np
 
 abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"] #abc enum for checksum
 morse = {".-":"A", "-...":"B", "-.-.":"C", "-..":"D", ".":"E", "..-.":"F", "--.":"G", "....":"H", "..":"I", ".---":"J", "-.-":"K", ".-..":"L", "--":"M", "-.":"N", "---":"O", ".--.":"P", "--.-":"Q", ".-.":"R", "...":"S", "-":"T", "..-":"U", "...-":"V", ".--":"W", "-..-":"X", "-.--":"Y", "--..":"Z", ".----":"1", "..---":"2", "...--":"3", "....-":"4", ".....":"5", "-....":"6", "--...":"7", "---..":"8", "----.":"9", "-----":"0", "-..-.":"/"}
@@ -13,9 +14,10 @@ EOB = "-..-." # /
 SEPERATOR = "-..-.." # #
 
 def timedelta(q):
+	import time
 	start = time.time()
 	while q.get() != "stop": pass
-	q.put(time.time()-start)
+	q.put(round(time.time()-start, 1))
 
 class Transmitter:
 
@@ -73,6 +75,7 @@ class Transmitter:
 		return(0)
 		
 	def __recv(self):
+			msg = ""
 			while not SEPERATOR in msg: # receiving until message  block (packet) ends
 				q = Queue()
 				clock = threading.Thread(target=timedelta, args=(q,))
@@ -80,21 +83,23 @@ class Transmitter:
 				clock.start()
 				while self.ldr.value > 0.5: pass
 				q.put("stop")
-				q.join()
-				if q.get() in range(0.3, 0.7): #time in seconds
+				clock.join()
+				delta = q.get()
+				if delta in np.arange(0.3, 0.7, 0.1): #time in seconds
 					msg += "."
-				elif q.get() in range(0.8, 1.3):
+				elif delta in np.arange(0.8, 1.3, 0.1):
 					msg += "-"
 				else:
 					pass
+
 			msg = msg.replace(EOB, "/").replace(SEPERATOR, "") # removing seperators from message
 			return(msg)
 		
 	def recv(self):
 			# receiving msg
 			for i in range(0, 2): # receiving 2 times to avoid packet loss - but it is still possible
-				msg = __recv()
-				checksum = __recv()
+				msg = self.__recv()
+				checksum = self.__recv()
 				if self.checksum(self.decrypt(msg)) == check: return(msg) # if checksum matches return message
 			return(-1) # if checksum doesnt match return an error
 	
