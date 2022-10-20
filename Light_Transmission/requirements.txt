@@ -1,0 +1,3 @@
+gpiozero
+rpi-gpio
+numpy
