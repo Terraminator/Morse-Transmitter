@@ -21,7 +21,7 @@ def timedelta(q):
 
 class Transmitter:
 
-	def __init__(self, pin1=17, pin2=18):
+	def __init__(self, pin1=17, pin2=18): # Ground 6 / 14
 		self.led = PWMLED(pin1) #setting up led pin
 		self.ldr = LightSensor(pin2) # setting up lightsensor pin
 		self.pin1 = int(pin1) # LED
@@ -34,6 +34,7 @@ class Transmitter:
 		self.led.value = 1 # turn led on
 		sleep(delay)
 		self.led.value = 0
+		sleep(1)
 		
 	def decrypt(self, msg):
 		msg = str(msg)
