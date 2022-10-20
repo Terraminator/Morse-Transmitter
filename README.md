@@ -10,6 +10,9 @@ R=1.3V/0.004A
 
 R = 325Ohm -> 330 Ohm  
 
+![image](https://github.com/Terraminator/Morse-Transmitter/blob/5544362c339f126cfa0b9128f866b9eea745d424/Light_Transmission/image1.jpg)  
+
+
 ![image](https://gpiozero.readthedocs.io/en/stable/_images/pin_layout.svg)
 
 
