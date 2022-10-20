@@ -16,4 +16,4 @@ R = 325Ohm -> 330 Ohm
 Usage of Morse Sender:  
 <pre>cd Light_Transmission</pre>  
 <pre>pip install -r requirements.txt </pre>
-<pre>python3 sender.py "<message>"</pre>  
+<pre>python3 sender.py "message"</pre>  
