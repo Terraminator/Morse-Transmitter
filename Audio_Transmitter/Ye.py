@@ -1,6 +1,7 @@
 import time
 import winsound
 
+
 # Will add raspberry support later
 def shortsound(speed):
     print("short")
@@ -12,29 +13,25 @@ def longsound(speed):
     str(speed)
     winsound.Beep(1000, 60*speed)
 
-def pauselong():
-    print("pause long")
-
-def pauseshort():
-    print("pause short")
-
 def send(enc,speed):
     for char in enc:
         if char == ".":
             shortsound(speed)
             time.sleep(0.02 * speed)
+            
         if char == "-":
             longsound(speed)
             time.sleep(0.06 * speed)
+
         if char == "│":
-            pauselong()
+            print("pause long")
             time.sleep(0.14 * speed)
+
         if char == "/":
-            pauseshort()
+            print("pause short")
             time.sleep(0.06 * speed)
         time.sleep(0.02 * speed)
-    print("Sending complete")
-            
+    print("Sending complete")      
 
 def convert(txt):
     decoded = {" ":"│","A":".-/", "B":"-.../", "C":"-.-./", "D":"-../", "E":"./", "F":"..-./", "G":"--./", "H":"..../", "I":"../", "J":".---/", "K":"-.-/", "L":".-../", "M":"--/", "N":"-./", "O":"---/", "P":".--./", "Q":"--.-/", "R":".-./", "S":".../", "T": "-/", "U":"..-/", "V":"...-/", "W":".--/", "X":"-..-/", "Y":"-.--/", "Z":"--../", "1":".----/", "2":"..---/", "3":"...--/", "4":"....-/", "5":"...../", "6":"-..../", "7":"--.../", "8":"---../", "9":"----./", "0":"-----/","a":".-/", "b":"-.../", "c":"-.-./", "d":"-../", "e":"./", "f":"..-./", "g":"--./", "h":"..../", "i":"../", "j":".---/", "k":"-.-/", "l":".-../", "m":"--/", "n":"-./", "o":"---/", "p":".--./", "q":"--.-/", "r":".-./", "s":".../", "t": "-/", "u":"..-/", "v":"...-/", "w":".--/", "x":"-..-/", "y":"-.--/", "z":"--../", ".":".-.-.- ", ",":"--..--/"}
@@ -52,7 +49,6 @@ def convert(txt):
         print("Invalid input, using 5 instead")
         speed = 5
     send(enc,speed)
-
 
 
 
