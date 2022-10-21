@@ -21,7 +21,7 @@ def send(enc,speed):
             
         if char == "-":
             longsound(speed)
-            time.sleep(0.06 * speed)
+            time.sleep(0.02 * speed)
 
         if char == "│":
             print("pause long")
@@ -30,7 +30,6 @@ def send(enc,speed):
         if char == "/":
             print("pause short")
             time.sleep(0.06 * speed)
-        time.sleep(0.02 * speed)
     print("Sending complete")   
     time.sleep(4)
 
