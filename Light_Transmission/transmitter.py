@@ -28,6 +28,7 @@ class Transmitter:
 		self.pin2 = int(pin2) # LightSensor
 		self.led.value = 0
 		
+		
 	def __blink(self, delay): # declaring private method
 		delay = float(delay) # important - 0.5 --> 0
 		self.led.value = 0 # turn led off 

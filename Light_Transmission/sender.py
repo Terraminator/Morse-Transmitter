@@ -18,7 +18,7 @@ def encrypt(msg):
 
 	
 if __name__ == "__main__":
-	mitter = Transmitter(17)
+	mitter = Transmitter(17, 18)
 	if len(sys.argv) < 2:
 		print("usage: sender.py message")
 		exit(-1)

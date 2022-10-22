@@ -19,7 +19,7 @@ def decrypt(msg):
 	return(dec)
 	
 if __name__ == "__main__":
-	mitter = Transmitter()
+	mitter = Transmitter(17, 18)
 	msg = -1
 	while msg == -1: msg = decrypt(mitter.recv())
 	print("message:\n" + str(msg))
