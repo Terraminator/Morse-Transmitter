@@ -13,8 +13,8 @@ rev_m  = {"A":".-", "B":"-...", "C":"-.-.", "D":"-..", "E":".", "F":"..-.", "G":
 LONG = 4 # long delay -> -
 SHORT = 2 # short delay -> .
 #OFF_DELAY = 1
-EOB = "-..-. " # /
-SEPERATOR = "-..-.. " # #
+EOB = "-..-." # /
+SEPERATOR = "-..-.." # #
 
 class Transmitter:
 
@@ -103,7 +103,7 @@ class Transmitter:
 				checksum = str(self.checksum(self.decrypt(morse)))
 				print("\nchecksum: " + checksum)
 				print("encrypted: " + str(self.encrypt(checksum)) + "\n")
-				self.send(self.encrypt(checksum), m="check")
+				self.send(self.encrypt(str(checksum)), m="check")
 			sleep(1)
 		return(0)
 		
@@ -125,7 +125,7 @@ class Transmitter:
 			elif sig.count("+") in count_short:
 				morse += "."
 		#morse = ".-" + SEPERATOR + "-----"
-		return(morse.replace(EOB, "/")) # removing seperators from message
+		return(morse.replace(SEPERATOR, "#").replace(EOB, "/")) # removing seperators from message
 	def __recv(self):
 			msg = ""
 			data = ""
@@ -150,12 +150,13 @@ class Transmitter:
 				delta = time.time() - start
 			print("evaluating data...")
 			sigs = data.split(";")
+			print("raw sigs: ", sigs)
 			del sigs[0]
 			del sigs[-1]
 			morse_full = self.__sigs_to_morse(sigs)
-			print(morse_full.split(SEPERATOR))
-			morse = morse_full.split(SEPERATOR)[0]
-			checksum = self.decrypt(morse_full.split(SEPERATOR)[1])
+			print(morse_full.split("#"))
+			morse = morse_full.split("#")[0]
+			checksum = self.decrypt(morse_full.split("#")[1])
 			print(sigs)
 			print("________________________________")
 			print("checksum: " + checksum)
@@ -166,7 +167,7 @@ class Transmitter:
 			# receiving msg
 			#for i in range(0, 2): # receiving 2 times to avoid packet loss - but it is still possible
 			msg, check = self.__recv()
-			if str(self.checksum(self.decrypt(msg))) == str(check):
+			if int(self.checksum(self.decrypt(msg))) == int(check):
 				return(msg) # if checksum matches return message
 			else:
 				print("fragmented msg: " + str(msg))

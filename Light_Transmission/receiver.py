@@ -13,6 +13,8 @@ def decrypt(msg):
 		elif c == " ":
 			dec += morse[tmp]
 			tmp = ""
+		elif c == "":
+			pass
 		else:
 			tmp += c
 	dec += morse[tmp]
