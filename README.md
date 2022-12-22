@@ -28,4 +28,6 @@ Usage of morse sender:
 Usage of morse receiver: 
 <pre>python3 receiver.py</pre>  
 
-##audio transmission
+documentation of functionality in Light_Transmission/docs/html/
+
+## audio transmission
