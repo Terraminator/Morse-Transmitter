@@ -1,6 +1,7 @@
-# Morse-Transmitter
+# morse transmitter
 Sending and receiving morse signals via python
 
+## light transmission
 calculating resistance of led:
 R=U/I ( Ohmsches Gesetz )
 
@@ -16,7 +17,13 @@ R = 325Ohm -> 330 Ohm
 ![image](https://gpiozero.readthedocs.io/en/stable/_images/pin_layout.svg)
 
 
-Usage of Morse Sender:  
+
+Setup:
 <pre>cd Light_Transmission</pre>  
-<pre>pip install -r requirements.txt </pre>
+<pre>pip install -r requirements.txt </pre>  
+
+Usage of morse sender:  
 <pre>python3 sender.py "message"</pre>  
+
+Usage of morse receiver:
+python3 receiver.py
