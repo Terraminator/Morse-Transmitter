@@ -25,5 +25,7 @@ Setup:
 Usage of morse sender:  
 <pre>python3 sender.py "message"</pre>  
 
-Usage of morse receiver:
-python3 receiver.py
+Usage of morse receiver: 
+<pre>python3 receiver.py</pre>  
+
+##audio transmission
