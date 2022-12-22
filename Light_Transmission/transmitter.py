@@ -69,16 +69,16 @@ class Transmitter:
 			sig = str(sig)
 			if mode == "space":
 				OFF_DELAY = 4
-				print(" ", end="", flush=True)
+				#print(" ", end="", flush=True)
 			else:
 				OFF_DELAY = 1
 			if sig == ".":
 				#print("blinking short")
-				print(".", end="", flush=True)
+				#print(".", end="", flush=True)
 				self.__blink(SHORT, OFF_DELAY)
 			elif sig == "-":
 				#print("blinking long")
-				print("-", end="",flush=True)
+				#print("-", end="",flush=True)
 				self.__blink(LONG, OFF_DELAY)
 			elif sig == "/":
 				#print("blinking EOB")
@@ -90,20 +90,22 @@ class Transmitter:
 		morse = str(morse)
 		print('"' + morse + '"')
 		print("live: ", end="", flush=True)
-		for i in range(0,1): # sending msg two times
-			for i in range(0, len(morse)):
-				sig = morse[i]
-				if i != len(morse) -1:
-					if morse[i+1] == " ":
-						ms="space"
-				self.__send(sig, ms) 
-			if m == "":
-				for sig in SEPERATOR:
-					self.__send(sig)
-				checksum = str(self.checksum(self.decrypt(morse)))
-				print("\nchecksum: " + checksum)
-				print("encrypted: " + str(self.encrypt(checksum)) + "\n")
-				self.send(self.encrypt(str(checksum)), m="check")
+		#for i in range(0,1): # sending msg two times
+		for i in range(0, len(morse)):
+			sig = morse[i]
+			print(sig, end="", flush=True)
+			if i != len(morse) -1:
+				if morse[i+1] == " ":
+					self.__send(sig, "space")
+				else:
+					self.__send(sig) 
+		if m == "":
+			for sig in SEPERATOR:
+				self.__send(sig)
+			checksum = str(self.checksum(self.decrypt(morse)))
+			print("\nchecksum: " + checksum)
+			print("encrypted: " + str(self.encrypt(checksum)) + "\n")
+			self.send(self.encrypt(str(checksum)), m="check")
 			sleep(1)
 		return(0)
 		
@@ -155,30 +157,42 @@ class Transmitter:
 			del sigs[-1]
 			morse_full = self.__sigs_to_morse(sigs)
 			print(morse_full.split("#"))
+			if len(morse_full.split("#"))<2:
+				print("message corrupted!")
+				return(-1)
 			morse = morse_full.split("#")[0]
 			checksum = self.decrypt(morse_full.split("#")[1])
 			print(sigs)
 			print("________________________________")
 			print("checksum: " + checksum)
 			print("morse: " + morse)
+			msg = self.decrypt(morse)
 			return(msg, checksum)
 		
 	def recv(self):
 			# receiving msg
 			#for i in range(0, 2): # receiving 2 times to avoid packet loss - but it is still possible
 			msg, check = self.__recv()
-			if int(self.checksum(self.decrypt(msg))) == int(check):
-				return(msg) # if checksum matches return message
-			else:
+			#print("message from checksum: ", self.decrypt(msg))
+			try:
+				if int(self.checksum(msg)) == int(check):
+					return(msg) # if checksum matches return message
+				else:
+					print("fragmented msg: " + str(msg))
+					return(-1) # if checksum doesnt match return an error
+			except:
+				print("checksum corrupted!")
 				print("fragmented msg: " + str(msg))
-				return(-1) # if checksum doesnt match return an error
+				return(-1)
 	
 	def checksum(self, msg):
-		msg = str(msg.upper()) # making message uppercase (not every char is in abc - yet)
+		#msg = str(msg.upper()) # making message uppercase (not every char is in abc - yet)
 		sum = 0
 		for c in msg:
-			for i in range(0, len(abc)):
-				if c == abc[i]:
-					sum += i
-					i = len(abc)
+			sum += ord(str(c))
+			#for i in range(0, len(abc)):
+			#	if c == abc[i]:
+			#		sum += i
+			#		i = len(abc)
+		print("Calculated Checksum:", sum)
 		return(sum)
