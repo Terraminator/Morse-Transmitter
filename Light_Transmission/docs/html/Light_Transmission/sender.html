@@ -55,7 +55,7 @@ if __name__ == &#34;__main__&#34;:
         start = time.time()
         mitter.send(morse)
         end = time.time()
-        print(&#34;message sent in {} seconds!&#34;.format(str(round(end-start))))</code></pre>
+        print(&#34;message sent in {} seconds({}min)!&#34;.format(round(end-start), round((end-start)/60, 1)))</code></pre>
 </details>
 </section>
 <section>
