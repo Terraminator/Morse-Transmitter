@@ -17,6 +17,34 @@ EOB = "-..-. " # /
 SEPERATOR = "-..-- " # #
 delay_sleep = 0.1
 
+
+#https://stackabuse.com/levenshtein-distance-and-text-similarity-in-python/
+def levenshtein(seq1, seq2):
+    size_x = len(seq1) + 1
+    size_y = len(seq2) + 1
+    matrix = np.zeros ((size_x, size_y))
+    for x in range(size_x):
+        matrix [x, 0] = x
+    for y in range(size_y):
+        matrix [0, y] = y
+
+    for x in range(1, size_x):
+        for y in range(1, size_y):
+            if seq1[x-1] == seq2[y-1]:
+                matrix [x,y] = min(
+                    matrix[x-1, y] + 1,
+                    matrix[x-1, y-1],
+                    matrix[x, y-1] + 1
+                )
+            else:
+                matrix [x,y] = min(
+                    matrix[x-1,y] + 1,
+                    matrix[x-1,y-1] + 1,
+                    matrix[x,y-1] + 1
+                )
+    #print (matrix)
+    return (matrix[size_x - 1, size_y - 1])
+
 class Transmitter:
 
 	def __init__(self, pin1=17, pin2=18, mode="led"):
@@ -36,6 +64,30 @@ class Transmitter:
 		self.led.value = 0
 		sleep(OFF_DELAY)
 		
+	def defrag(self, msg:str, check:int):
+		check = int(check)
+		msg=str(msg)
+		with open("3000_de.txt", "r") as wordlist:
+			words = list(map(lambda x: x.upper().strip("\n"), wordlist.readlines()))
+		unknown = []
+		for w in msg.upper().split():
+			if w not in words:
+				unknown.append(w)
+		print("unknown words: " + str(unknown).strip("[]"))
+		for u in unknown:
+			canditates = {}
+			for x in words:
+				if not(levenshtein(u, x) > len(u)/2):
+					canditates.update({x.strip("\n"):levenshtein(u, x)})
+			print("candidates: ", canditates)
+			for idx, ca in enumerate(canditates):
+				if abs(self.checksum(msg.replace(u, ca))-check)<abs(self.checksum(msg)-check):
+					msg = msg.replace(u, ca)
+		if self.checksum(msg) == check:
+			return(msg)
+		else:
+			return(-1)
+
 	def decrypt(self, msg):
 		dec = ""
 		tmp = ""
@@ -96,25 +148,13 @@ class Transmitter:
 				else:
 					self.__send(sig) 
 		if m == "":
-			#print("\nSEPERATOR: \#")
-			#self.send(SEPERATOR, m="SEP")
-			#sleep(LONG)
-			#for i in range(0, len(SEPERATOR)):
-			#	if i == len(SEPERATOR)-1:
-			#		self.__send(sig, "space")
-			#	else:
-			#		self.__send(sig)
-			#sleep(LONG)
 			checksum = str(self.checksum(self.decrypt(morse.replace(SEPERATOR, ""))))
 			print("\nchecksum: " + checksum)
 			print("encrypted: " + str(self.encrypt(checksum)) + "\n")
 			self.send(self.encrypt(str(checksum)), m="check")
-			#sleep(LONG)
 		return(0)
 		
 	def __round_brightness(self, value):
-		#if value >= 0.7:
-		#	return("-") # dark
 		if value <= 0.3:
 			return("+") # bright
 		else:
@@ -192,8 +232,15 @@ class Transmitter:
 					return(msg) # if checksum matches return message
 				else:
 					print("\nfragmented msg: " + str(msg))
+					msg = self.defrag(msg, check)
+					if msg == -1:
+						print("Couldnt defrag message!")
+					else:
+						print("defragemented msg: " + str(msg))
+						return(msg)
 					return(-1) # if checksum doesnt match return an error
-			except:
+			except Exception as e:
+				print(e)
 				print("checksum corrupted!")
 				print("fragmented msg: " + str(msg))
 				return(-1)

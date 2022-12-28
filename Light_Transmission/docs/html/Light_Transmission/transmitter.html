@@ -45,6 +45,34 @@ EOB = &#34;-..-. &#34; # /
 SEPERATOR = &#34;-..-- &#34; # #
 delay_sleep = 0.1
 
+
+#https://stackabuse.com/levenshtein-distance-and-text-similarity-in-python/
+def levenshtein(seq1, seq2):
+    size_x = len(seq1) + 1
+    size_y = len(seq2) + 1
+    matrix = np.zeros ((size_x, size_y))
+    for x in range(size_x):
+        matrix [x, 0] = x
+    for y in range(size_y):
+        matrix [0, y] = y
+
+    for x in range(1, size_x):
+        for y in range(1, size_y):
+            if seq1[x-1] == seq2[y-1]:
+                matrix [x,y] = min(
+                    matrix[x-1, y] + 1,
+                    matrix[x-1, y-1],
+                    matrix[x, y-1] + 1
+                )
+            else:
+                matrix [x,y] = min(
+                    matrix[x-1,y] + 1,
+                    matrix[x-1,y-1] + 1,
+                    matrix[x,y-1] + 1
+                )
+    #print (matrix)
+    return (matrix[size_x - 1, size_y - 1])
+
 class Transmitter:
 
         def __init__(self, pin1=17, pin2=18, mode=&#34;led&#34;):
@@ -64,6 +92,30 @@ class Transmitter:
                 self.led.value = 0
                 sleep(OFF_DELAY)
                 
+        def defrag(self, msg:str, check:int):
+                check = int(check)
+                msg=str(msg)
+                with open(&#34;3000_de.txt&#34;, &#34;r&#34;) as wordlist:
+                        words = list(map(lambda x: x.upper().strip(&#34;\n&#34;), wordlist.readlines()))
+                unknown = []
+                for w in msg.upper().split():
+                        if w not in words:
+                                unknown.append(w)
+                print(&#34;unknown words: &#34; + str(unknown).strip(&#34;[]&#34;))
+                for u in unknown:
+                        canditates = {}
+                        for x in words:
+                                if not(levenshtein(u, x) &gt; len(u)/2):
+                                        canditates.update({x.strip(&#34;\n&#34;):levenshtein(u, x)})
+                        print(&#34;candidates: &#34;, canditates)
+                        for idx, ca in enumerate(canditates):
+                                if abs(self.checksum(msg.replace(u, ca))-check)&lt;abs(self.checksum(msg)-check):
+                                        msg = msg.replace(u, ca)
+                if self.checksum(msg) == check:
+                        return(msg)
+                else:
+                        return(-1)
+
         def decrypt(self, msg):
                 dec = &#34;&#34;
                 tmp = &#34;&#34;
@@ -124,25 +176,13 @@ class Transmitter:
                                 else:
                                         self.__send(sig) 
                 if m == &#34;&#34;:
-                        #print(&#34;\nSEPERATOR: \#&#34;)
-                        #self.send(SEPERATOR, m=&#34;SEP&#34;)
-                        #sleep(LONG)
-                        #for i in range(0, len(SEPERATOR)):
-                        #       if i == len(SEPERATOR)-1:
-                        #               self.__send(sig, &#34;space&#34;)
-                        #       else:
-                        #               self.__send(sig)
-                        #sleep(LONG)
                         checksum = str(self.checksum(self.decrypt(morse.replace(SEPERATOR, &#34;&#34;))))
                         print(&#34;\nchecksum: &#34; + checksum)
                         print(&#34;encrypted: &#34; + str(self.encrypt(checksum)) + &#34;\n&#34;)
                         self.send(self.encrypt(str(checksum)), m=&#34;check&#34;)
-                        #sleep(LONG)
                 return(0)
                 
         def __round_brightness(self, value):
-                #if value &gt;= 0.7:
-                #       return(&#34;-&#34;) # dark
                 if value &lt;= 0.3:
                         return(&#34;+&#34;) # bright
                 else:
@@ -220,8 +260,15 @@ class Transmitter:
                                         return(msg) # if checksum matches return message
                                 else:
                                         print(&#34;\nfragmented msg: &#34; + str(msg))
+                                        msg = self.defrag(msg, check)
+                                        if msg == -1:
+                                                print(&#34;Couldnt defrag message!&#34;)
+                                        else:
+                                                print(&#34;defragemented msg: &#34; + str(msg))
+                                                return(msg)
                                         return(-1) # if checksum doesnt match return an error
-                        except:
+                        except Exception as e:
+                                print(e)
                                 print(&#34;checksum corrupted!&#34;)
                                 print(&#34;fragmented msg: &#34; + str(msg))
                                 return(-1)
@@ -238,6 +285,45 @@ class Transmitter:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="Light_Transmission.transmitter.levenshtein"><code class="name flex">
+<span>def <span class="ident">levenshtein</span></span>(<span>seq1, seq2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def levenshtein(seq1, seq2):
+    size_x = len(seq1) + 1
+    size_y = len(seq2) + 1
+    matrix = np.zeros ((size_x, size_y))
+    for x in range(size_x):
+        matrix [x, 0] = x
+    for y in range(size_y):
+        matrix [0, y] = y
+
+    for x in range(1, size_x):
+        for y in range(1, size_y):
+            if seq1[x-1] == seq2[y-1]:
+                matrix [x,y] = min(
+                    matrix[x-1, y] + 1,
+                    matrix[x-1, y-1],
+                    matrix[x, y-1] + 1
+                )
+            else:
+                matrix [x,y] = min(
+                    matrix[x-1,y] + 1,
+                    matrix[x-1,y-1] + 1,
+                    matrix[x,y-1] + 1
+                )
+    #print (matrix)
+    return (matrix[size_x - 1, size_y - 1])</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -271,6 +357,30 @@ class Transmitter:
                 self.led.value = 0
                 sleep(OFF_DELAY)
                 
+        def defrag(self, msg:str, check:int):
+                check = int(check)
+                msg=str(msg)
+                with open(&#34;3000_de.txt&#34;, &#34;r&#34;) as wordlist:
+                        words = list(map(lambda x: x.upper().strip(&#34;\n&#34;), wordlist.readlines()))
+                unknown = []
+                for w in msg.upper().split():
+                        if w not in words:
+                                unknown.append(w)
+                print(&#34;unknown words: &#34; + str(unknown).strip(&#34;[]&#34;))
+                for u in unknown:
+                        canditates = {}
+                        for x in words:
+                                if not(levenshtein(u, x) &gt; len(u)/2):
+                                        canditates.update({x.strip(&#34;\n&#34;):levenshtein(u, x)})
+                        print(&#34;candidates: &#34;, canditates)
+                        for idx, ca in enumerate(canditates):
+                                if abs(self.checksum(msg.replace(u, ca))-check)&lt;abs(self.checksum(msg)-check):
+                                        msg = msg.replace(u, ca)
+                if self.checksum(msg) == check:
+                        return(msg)
+                else:
+                        return(-1)
+
         def decrypt(self, msg):
                 dec = &#34;&#34;
                 tmp = &#34;&#34;
@@ -331,25 +441,13 @@ class Transmitter:
                                 else:
                                         self.__send(sig) 
                 if m == &#34;&#34;:
-                        #print(&#34;\nSEPERATOR: \#&#34;)
-                        #self.send(SEPERATOR, m=&#34;SEP&#34;)
-                        #sleep(LONG)
-                        #for i in range(0, len(SEPERATOR)):
-                        #       if i == len(SEPERATOR)-1:
-                        #               self.__send(sig, &#34;space&#34;)
-                        #       else:
-                        #               self.__send(sig)
-                        #sleep(LONG)
                         checksum = str(self.checksum(self.decrypt(morse.replace(SEPERATOR, &#34;&#34;))))
                         print(&#34;\nchecksum: &#34; + checksum)
                         print(&#34;encrypted: &#34; + str(self.encrypt(checksum)) + &#34;\n&#34;)
                         self.send(self.encrypt(str(checksum)), m=&#34;check&#34;)
-                        #sleep(LONG)
                 return(0)
                 
         def __round_brightness(self, value):
-                #if value &gt;= 0.7:
-                #       return(&#34;-&#34;) # dark
                 if value &lt;= 0.3:
                         return(&#34;+&#34;) # bright
                 else:
@@ -427,8 +525,15 @@ class Transmitter:
                                         return(msg) # if checksum matches return message
                                 else:
                                         print(&#34;\nfragmented msg: &#34; + str(msg))
+                                        msg = self.defrag(msg, check)
+                                        if msg == -1:
+                                                print(&#34;Couldnt defrag message!&#34;)
+                                        else:
+                                                print(&#34;defragemented msg: &#34; + str(msg))
+                                                return(msg)
                                         return(-1) # if checksum doesnt match return an error
-                        except:
+                        except Exception as e:
+                                print(e)
                                 print(&#34;checksum corrupted!&#34;)
                                 print(&#34;fragmented msg: &#34; + str(msg))
                                 return(-1)
@@ -483,6 +588,40 @@ class Transmitter:
         return(dec)</code></pre>
 </details>
 </dd>
+<dt id="Light_Transmission.transmitter.Transmitter.defrag"><code class="name flex">
+<span>def <span class="ident">defrag</span></span>(<span>self, msg: str, check: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def defrag(self, msg:str, check:int):
+        check = int(check)
+        msg=str(msg)
+        with open(&#34;3000_de.txt&#34;, &#34;r&#34;) as wordlist:
+                words = list(map(lambda x: x.upper().strip(&#34;\n&#34;), wordlist.readlines()))
+        unknown = []
+        for w in msg.upper().split():
+                if w not in words:
+                        unknown.append(w)
+        print(&#34;unknown words: &#34; + str(unknown).strip(&#34;[]&#34;))
+        for u in unknown:
+                canditates = {}
+                for x in words:
+                        if not(levenshtein(u, x) &gt; len(u)/2):
+                                canditates.update({x.strip(&#34;\n&#34;):levenshtein(u, x)})
+                print(&#34;candidates: &#34;, canditates)
+                for idx, ca in enumerate(canditates):
+                        if abs(self.checksum(msg.replace(u, ca))-check)&lt;abs(self.checksum(msg)-check):
+                                msg = msg.replace(u, ca)
+        if self.checksum(msg) == check:
+                return(msg)
+        else:
+                return(-1)</code></pre>
+</details>
+</dd>
 <dt id="Light_Transmission.transmitter.Transmitter.encrypt"><code class="name flex">
 <span>def <span class="ident">encrypt</span></span>(<span>self, msg)</span>
 </code></dt>
@@ -529,8 +668,15 @@ class Transmitter:
                                 return(msg) # if checksum matches return message
                         else:
                                 print(&#34;\nfragmented msg: &#34; + str(msg))
+                                msg = self.defrag(msg, check)
+                                if msg == -1:
+                                        print(&#34;Couldnt defrag message!&#34;)
+                                else:
+                                        print(&#34;defragemented msg: &#34; + str(msg))
+                                        return(msg)
                                 return(-1) # if checksum doesnt match return an error
-                except:
+                except Exception as e:
+                        print(e)
                         print(&#34;checksum corrupted!&#34;)
                         print(&#34;fragmented msg: &#34; + str(msg))
                         return(-1)</code></pre>
@@ -561,20 +707,10 @@ class Transmitter:
                         else:
                                 self.__send(sig) 
         if m == &#34;&#34;:
-                #print(&#34;\nSEPERATOR: \#&#34;)
-                #self.send(SEPERATOR, m=&#34;SEP&#34;)
-                #sleep(LONG)
-                #for i in range(0, len(SEPERATOR)):
-                #       if i == len(SEPERATOR)-1:
-                #               self.__send(sig, &#34;space&#34;)
-                #       else:
-                #               self.__send(sig)
-                #sleep(LONG)
                 checksum = str(self.checksum(self.decrypt(morse.replace(SEPERATOR, &#34;&#34;))))
                 print(&#34;\nchecksum: &#34; + checksum)
                 print(&#34;encrypted: &#34; + str(self.encrypt(checksum)) + &#34;\n&#34;)
                 self.send(self.encrypt(str(checksum)), m=&#34;check&#34;)
-                #sleep(LONG)
         return(0)</code></pre>
 </details>
 </dd>
@@ -594,13 +730,19 @@ class Transmitter:
 <li><code><a title="Light_Transmission" href="index.html">Light_Transmission</a></code></li>
 </ul>
 </li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="Light_Transmission.transmitter.levenshtein" href="#Light_Transmission.transmitter.levenshtein">levenshtein</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="Light_Transmission.transmitter.Transmitter" href="#Light_Transmission.transmitter.Transmitter">Transmitter</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="Light_Transmission.transmitter.Transmitter.checksum" href="#Light_Transmission.transmitter.Transmitter.checksum">checksum</a></code></li>
 <li><code><a title="Light_Transmission.transmitter.Transmitter.decrypt" href="#Light_Transmission.transmitter.Transmitter.decrypt">decrypt</a></code></li>
+<li><code><a title="Light_Transmission.transmitter.Transmitter.defrag" href="#Light_Transmission.transmitter.Transmitter.defrag">defrag</a></code></li>
 <li><code><a title="Light_Transmission.transmitter.Transmitter.encrypt" href="#Light_Transmission.transmitter.Transmitter.encrypt">encrypt</a></code></li>
 <li><code><a title="Light_Transmission.transmitter.Transmitter.recv" href="#Light_Transmission.transmitter.Transmitter.recv">recv</a></code></li>
 <li><code><a title="Light_Transmission.transmitter.Transmitter.send" href="#Light_Transmission.transmitter.Transmitter.send">send</a></code></li>
