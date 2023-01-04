@@ -1,6 +1,5 @@
 # morse transmitter
-Sending and receiving morse signals via python
-
+Sending and receiving morse signals via a Raspberry Pi using light and sound
 ## light transmission
 calculating resistance of led:
 R=U/I ( Ohmsches Gesetz )
