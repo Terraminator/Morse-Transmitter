@@ -44,9 +44,9 @@ Ein neuer Buchstabe wird durch viele "---------------" erkennbar und die Trennun
 Daraus folgt eine Morse Botschaft: z.B .... .- .-.. .-.. --- /.-- . .-.. - #--... .---- -.... was als HALLO WELT#716 übersetzt werden kann.
 nach dieser Interpretation wird die Botschaft in Checksum und Nachricht aufgeteilt und überprüft, ob die übermittelte Botschaft mit der selbst ausgerechneten Checksum übereinstimmt.
 Sollte dies nicht der Fall sein und die Checksum eine Zahl ist also voraussichtlich richtig übermittelt wurde, wird versucht die Nachricht zu defragmentieren.
-Hierbei wird eine Wortliste aus häufigen Wörtern mit den Unbekannten Wörtern der Nachricht verglichen und bei einer Levenshtein Distanz unter fünf als Kandidat in Betracht gezogen.
-Wenn die Nachricht bei ersetzten eines unbekannten Wortes durch einen dieser Kandidaten die Checksum näher an die Übermittelte heranbringt, wird dieses Wort durch den Kandidaten ersetzt.
-Sollte nach Überprüfen aller möglichen Wörtern die erwartete Checksum erreicht wird, wird die defragmentierte Nachricht zurückgegeben, andernfalls wird die fragmentierte Nachricht ausgegeben und ein Fehler zurückgegeben.
+Hierbei wird eine Wortliste aus häufigen Wörtern mit den Unbekannten Wörtern der Nachricht verglichen und bei einer Levenshtein Distanz unter drei als das Wort als Kandidat für ein unbekanntes Wort in Betracht gezogen.
+
+Wenn nach Überprüfen aller möglichen Wörter in allen Variationen die erwartete Checksum erreicht wird und keine unbekannten Wörter mehr in der Nachrricht vorhanden sind, wird die defragmentierte Nachricht zurückgegeben, andernfalls wird die fragmentierte Nachricht ausgegeben und ein Fehler zurückgegeben.
 In dem Fall, dass die Checksum voraussichtlich falsch übertragen wurde, wird nicht versucht die Nachricht zu defragmentieren und ein Fehler wird zurückgegeben.
 Wenn die Nachricht wie erwartet eintrifft wird diese zurückgegeben.
 
@@ -55,6 +55,9 @@ Es ist zudem nicht möglich diese beiden Konstanten weiter zu verringern, und di
 Auch dies führt zur vollständigen Fehlübertragung der Nachricht.
 Weiterhin ist es wichtig, dass transmitter.SEPERATOR nicht denselben Anfang von transmitter.EOB hat, da andernfalls transmitter.SEPERATOR andernfalls falsch interpretiert wird.
 Die erwartete Zeit wird durch die gleiche Funktion wie in transmitter.send berechnet, danach wird diese Schätzung ein wenig erhöht um tendenziell eher zu viel Zeit als zu wenig zu schätzen.
+
+Das Morse Verfahren ist anderen Verfahren in der Geschwindigkeit deutlich unterlegen, da diese z.B das Licht modulieren und so mehr Daten gleichzeitig senden können, auch die Hardware ist im Vergleich zu Glasfaser Technolgien oder ähnlichem eher langsam, da diese mit einer Verzögerung schaltet keine besonders starke Lichtquelle verwendet wird.
+Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, da eine Nachricht anhand einer Cheksum wiederhergestellt werden kann.
 
 
 
