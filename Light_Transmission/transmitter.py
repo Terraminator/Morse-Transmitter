@@ -1,21 +1,24 @@
-from gpiozero import PWMLED
-from time import sleep
+from gpiozero import LED, LightSensor
 import time
-from gpiozero import LightSensor
-import threading
-from queue import Queue
 import numpy as np
+import re
 
 abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"] #abc enum for checksum
 morse = {".-":"A", "-...":"B", "-.-.":"C", "-..":"D", ".":"E", "..-.":"F", "--.":"G", "....":"H", "..":"I", ".---":"J", "-.-":"K", ".-..":"L", "--":"M", "-.":"N", "---":"O", ".--.":"P", "--.-":"Q", ".-.":"R", "...":"S", "-":"T", "..-":"U", "...-":"V", ".--":"W", "-..-":"X", "-.--":"Y", "--..":"Z", ".----":"1", "..---":"2", "...--":"3", "....-":"4", ".....":"5", "-....":"6", "--...":"7", "---..":"8", "----.":"9", "-----":"0", "-..-.":"/", "":""}
 rev_m  = {"A":".-", "B":"-...", "C":"-.-.", "D":"-..", "E":".", "F":"..-.", "G":"--.", "H":"....", "I":"..", "J":".---", "K":"-.-", "L":".-..", "M":"--", "N":"-.", "O":"---", "P":".--.", "Q":"--.-", "R":".-.", "S":"...", "T": "-", "U":"..-", "V":"...-", "W":".--", "X":"-..-", "Y":"-.--", "Z":"--..", "1":".----", "2":"..---", "3":"...--", "4":"....-", "5":".....", "6":"-....", "7":"--...", "8":"---..", "9":"----.", "0":"-----", "/":"-..-.", "":"", "#":"-..-.."}
 
+#LONG = 1 # long delay -> -
+#SHORT = 0.5 # short delay -> .
 LONG = 1 # long delay -> -
 SHORT = 0.5 # short delay -> .
 #OFF_DELAY = 1
 EOB = "-..-. " # /
 SEPERATOR = "-..-- " # #
 delay_sleep = 0.1
+
+# bring wordlist to right format
+with open("3000_de.txt", "r") as wordlist:
+	words = list(map(lambda x: x.upper().strip("\n").replace("Ö", "OE").replace("Ä", "AE").replace("ß", "SZ").replace("Ü", "UE"), wordlist.readlines()))
 
 
 #https://stackabuse.com/levenshtein-distance-and-text-similarity-in-python/
@@ -49,7 +52,7 @@ class Transmitter:
 
 	def __init__(self, pin1=17, pin2=18, mode="led"):
 		if mode == "led":
-			self.led = PWMLED(pin1) #setting up led pin
+			self.led = LED(pin1) #setting up led pin
 			self.led.value = 0
 		elif mode == "ldr":
 			self.ldr = LightSensor(pin2) # setting up lightsensor pin
@@ -60,33 +63,59 @@ class Transmitter:
 		delay = float(delay) 
 		self.led.value = 0 # turn led off 
 		self.led.value = 1 # turn led on
-		sleep(delay)
+		time.sleep(delay)
 		self.led.value = 0
-		sleep(OFF_DELAY)
-		
-	def defrag(self, msg:str, check:int):
-		check = int(check)
-		msg=str(msg)
-		with open("3000_de.txt", "r") as wordlist:
-			words = list(map(lambda x: x.upper().strip("\n"), wordlist.readlines()))
+		time.sleep(OFF_DELAY)
+
+	def __get_candidates(self, u, words):
+			candidates= {}
+			for x in words:
+				if levenshtein(u, x) <= 3 :
+					candidates.update({x.strip("\n"):levenshtein(u, x)})
+			return(candidates)
+
+	def __get_unknown(self, msg, words):
 		unknown = []
 		for w in msg.upper().split():
 			if w not in words:
 				unknown.append(w)
-		print("unknown words: " + str(unknown).strip("[]"))
-		for u in unknown:
-			canditates = {}
-			for x in words:
-				if not(levenshtein(u, x) > len(u)/2):
-					canditates.update({x.strip("\n"):levenshtein(u, x)})
-			print("candidates: ", canditates)
-			for idx, ca in enumerate(canditates):
-				if abs(self.checksum(msg.replace(u, ca))-check)<abs(self.checksum(msg)-check):
-					msg = msg.replace(u, ca)
-		if self.checksum(msg) == check:
-			return(msg)
+		return(unknown)
+
+	def __check(self, guess, check):
+		if int(self.checksum(guess)) == int(check):
+			return(True)
 		else:
+			return(False)
+	
+
+	def defrag(self, msg:str, check:int):
+		unknown = self.__get_unknown(msg, words)
+		cs = []
+		possibilities = []
+		print("unknown words:" + str(unknown))
+		for u in unknown:
+			candidates = self.__get_candidates(u, words)
+			#print(candidates)
+			cs.append([a for a, b in sorted(candidates.items(), key=lambda x:x[1])])
+		print("defragmenting...")
+
+		for x in range(0, len(cs)):
+			for ca in cs[x]:
+				guess = msg.replace(unknown[x], ca.strip()).strip()
+				if self.__check(guess, check) and not any(u in guess for u in unknown) and levenshtein(guess, msg)<=3:
+					possibilities.append({guess:levenshtein(guess, msg)})
+				
+				for z in range(0, len([ö for ö in cs if ö != cs[x]])):
+					cb = [ö for ö in cs if ö != cs[x]][z]
+					for cc in cb:
+						guess = msg.replace(unknown[x], ca.strip()).replace(unknown[z], cc.strip()).strip()
+						if self.__check(guess, check) and not any(u in guess for u in unknown) and levenshtein(guess, msg)<=3:
+							possibilities.append({guess:levenshtein(guess, msg)})
+		if len(possibilities)==0:
 			return(-1)
+		else:
+			print(possibilities)
+			return(str([c for c in possibilities[0]]).strip(""""[']"""))
 
 	def decrypt(self, msg):
 		dec = ""
@@ -230,7 +259,7 @@ class Transmitter:
 			try:
 				if int(self.checksum(msg)) == int(check):
 					return(msg) # if checksum matches return message
-				else:
+				elif check != 0:
 					print("\nfragmented msg: " + str(msg))
 					msg = self.defrag(msg, check)
 					if msg == -1:
@@ -239,6 +268,8 @@ class Transmitter:
 						print("defragemented msg: " + str(msg))
 						return(msg)
 					return(-1) # if checksum doesnt match return an error
+				else:
+					return(-1)
 			except Exception as e:
 				print(e)
 				print("checksum corrupted!")

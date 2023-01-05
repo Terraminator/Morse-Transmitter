@@ -26,32 +26,62 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from transmitter import Transmitter
+<pre><code class="python">from transmitter import Transmitter, SHORT, LONG, SEPERATOR, EOB
 import sys
 import time
 
 abc = {&#34;A&#34;:&#34;.-&#34;, &#34;B&#34;:&#34;-...&#34;, &#34;C&#34;:&#34;-.-.&#34;, &#34;D&#34;:&#34;-..&#34;, &#34;E&#34;:&#34;.&#34;, &#34;F&#34;:&#34;..-.&#34;, &#34;G&#34;:&#34;--.&#34;, &#34;H&#34;:&#34;....&#34;, &#34;I&#34;:&#34;..&#34;, &#34;J&#34;:&#34;.---&#34;, &#34;K&#34;:&#34;-.-&#34;, &#34;L&#34;:&#34;.-..&#34;, &#34;M&#34;:&#34;--&#34;, &#34;N&#34;:&#34;-.&#34;, &#34;O&#34;:&#34;---&#34;, &#34;P&#34;:&#34;.--.&#34;, &#34;Q&#34;:&#34;--.-&#34;, &#34;R&#34;:&#34;.-.&#34;, &#34;S&#34;:&#34;...&#34;, &#34;T&#34;: &#34;-&#34;, &#34;U&#34;:&#34;..-&#34;, &#34;V&#34;:&#34;...-&#34;, &#34;W&#34;:&#34;.--&#34;, &#34;X&#34;:&#34;-..-&#34;, &#34;Y&#34;:&#34;-.--&#34;, &#34;Z&#34;:&#34;--..&#34;, &#34;1&#34;:&#34;.----&#34;, &#34;2&#34;:&#34;..---&#34;, &#34;3&#34;:&#34;...--&#34;, &#34;4&#34;:&#34;....-&#34;, &#34;5&#34;:&#34;.....&#34;, &#34;6&#34;:&#34;-....&#34;, &#34;7&#34;:&#34;--...&#34;, &#34;8&#34;:&#34;---..&#34;, &#34;9&#34;:&#34;----.&#34;, &#34;0&#34;:&#34;-----&#34;, &#34;/&#34;:&#34;-..-.&#34;}
 morse = {&#34;.-&#34;:&#34;A&#34;, &#34;-...&#34;:&#34;B&#34;, &#34;-.-.&#34;:&#34;C&#34;, &#34;-..&#34;:&#34;D&#34;, &#34;.&#34;:&#34;E&#34;, &#34;..-.&#34;:&#34;F&#34;, &#34;--.&#34;:&#34;G&#34;, &#34;....&#34;:&#34;H&#34;, &#34;..&#34;:&#34;I&#34;, &#34;.---&#34;:&#34;J&#34;, &#34;-.-&#34;:&#34;K&#34;, &#34;.-..&#34;:&#34;L&#34;, &#34;--&#34;:&#34;M&#34;, &#34;-.&#34;:&#34;N&#34;, &#34;---&#34;:&#34;O&#34;, &#34;.--.&#34;:&#34;P&#34;, &#34;--.-&#34;:&#34;Q&#34;, &#34;.-.&#34;:&#34;R&#34;, &#34;...&#34;:&#34;S&#34;, &#34;-&#34;:&#34;T&#34;, &#34;..-&#34;:&#34;U&#34;, &#34;...-&#34;:&#34;V&#34;, &#34;.--&#34;:&#34;W&#34;, &#34;-..-&#34;:&#34;X&#34;, &#34;-.--&#34;:&#34;Y&#34;, &#34;--..&#34;:&#34;Z&#34;, &#34;.----&#34;:&#34;1&#34;, &#34;..---&#34;:&#34;2&#34;, &#34;...--&#34;:&#34;3&#34;, &#34;....-&#34;:&#34;4&#34;, &#34;.....&#34;:&#34;5&#34;, &#34;-....&#34;:&#34;6&#34;, &#34;--...&#34;:&#34;7&#34;, &#34;---..&#34;:&#34;8&#34;, &#34;----.&#34;:&#34;9&#34;, &#34;-----&#34;:&#34;0&#34;, &#34;-..-.&#34;:&#34;/&#34;}
-def encrypt(msg):
-        enc = &#34;&#34;
-        for c in msg:
-                try:
-                        int(c)
-                        enc += abc[str(c)] + &#34; &#34;
-                except:
-                        if c == &#34; &#34;:
-                                enc += &#34;/ &#34;
-                        else:
-                                enc += abc[c.upper()] + &#34; &#34;
-        return(enc)
+mitter = Transmitter(17, 18, &#34;led&#34;)
 
-        
+#def encrypt(msg: str):
+#       msg = msg.replace(&#34;ö&#34;, &#34;oe&#34;).replace(&#34;ä&#34;, &#34;ae&#34;).replace(&#34;ß&#34;, &#34;sz&#34;).replace(&#34;ü&#34;, &#34;ue&#34;)
+#       enc = &#34;&#34;
+#       for c in msg:
+#               try:
+#                       int(c)
+#                       enc += abc[str(c)] + &#34; &#34;
+#               except:
+#                       if c == &#34; &#34;:
+#                               enc += &#34;/ &#34;
+#                       else:
+#                               enc += abc[c.upper()] + &#34; &#34;
+#       return(enc)
+
+def estimate_time(morse: str, m=&#34;&#34;):
+        et=0
+        if m == &#34;&#34;:
+                morse += SEPERATOR + mitter.encrypt(str(mitter.checksum(mitter.decrypt(morse))))
+        for i in range(0, len(morse)):
+                sig = morse[i]
+                if i != len(morse) -1:
+                        if morse[i+1] == &#34; &#34;:
+                                if sig == &#34;-&#34;:
+                                        et += LONG*2
+                                elif sig == &#34;.&#34;:
+                                        et += (SHORT + LONG)
+                                elif sig == &#34;/&#34;:
+                                        et += estimate_time(EOB, m=1)
+                        else:
+                                if sig == &#34;-&#34;:
+                                        et += LONG+SHORT
+                                elif sig == &#34;.&#34;:
+                                        et += SHORT*2
+                                elif sig == &#34;/&#34;:
+                                        et += estimate_time(EOB, m=1)
+        return(et)
+
 if __name__ == &#34;__main__&#34;:
-        mitter = Transmitter(17, 18, &#34;led&#34;)
         if len(sys.argv) &lt; 2:
                 print(&#34;usage: sender.py message&#34;)
                 exit(-1)
-        morse = encrypt(sys.argv[1])
+        try:
+                morse = str(mitter.encrypt(sys.argv[1]))
+        except:
+                print(&#34;Sorry special characters are not allowed!&#34;)
+                exit(0)
+        estimated = round(estimate_time(morse), 1)
+        print(&#34;estimated time: {}s&#34;.format(estimated+(len(morse.split(&#34; &#34;))/2)*1.5))
         start = time.time()
         mitter.send(morse)
         end = time.time()
@@ -65,8 +95,8 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="Light_Transmission.sender.encrypt"><code class="name flex">
-<span>def <span class="ident">encrypt</span></span>(<span>msg)</span>
+<dt id="Light_Transmission.sender.estimate_time"><code class="name flex">
+<span>def <span class="ident">estimate_time</span></span>(<span>morse: str, m='')</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -74,18 +104,28 @@ if __name__ == &#34;__main__&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def encrypt(msg):
-        enc = &#34;&#34;
-        for c in msg:
-                try:
-                        int(c)
-                        enc += abc[str(c)] + &#34; &#34;
-                except:
-                        if c == &#34; &#34;:
-                                enc += &#34;/ &#34;
+<pre><code class="python">def estimate_time(morse: str, m=&#34;&#34;):
+        et=0
+        if m == &#34;&#34;:
+                morse += SEPERATOR + mitter.encrypt(str(mitter.checksum(mitter.decrypt(morse))))
+        for i in range(0, len(morse)):
+                sig = morse[i]
+                if i != len(morse) -1:
+                        if morse[i+1] == &#34; &#34;:
+                                if sig == &#34;-&#34;:
+                                        et += LONG*2
+                                elif sig == &#34;.&#34;:
+                                        et += (SHORT + LONG)
+                                elif sig == &#34;/&#34;:
+                                        et += estimate_time(EOB, m=1)
                         else:
-                                enc += abc[c.upper()] + &#34; &#34;
-        return(enc)</code></pre>
+                                if sig == &#34;-&#34;:
+                                        et += LONG+SHORT
+                                elif sig == &#34;.&#34;:
+                                        et += SHORT*2
+                                elif sig == &#34;/&#34;:
+                                        et += estimate_time(EOB, m=1)
+        return(et)</code></pre>
 </details>
 </dd>
 </dl>
@@ -106,7 +146,7 @@ if __name__ == &#34;__main__&#34;:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="Light_Transmission.sender.encrypt" href="#Light_Transmission.sender.encrypt">encrypt</a></code></li>
+<li><code><a title="Light_Transmission.sender.estimate_time" href="#Light_Transmission.sender.estimate_time">estimate_time</a></code></li>
 </ul>
 </li>
 </ul>
