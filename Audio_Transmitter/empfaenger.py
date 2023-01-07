@@ -39,19 +39,18 @@ print(len(sequence))
 
 
 # Get approximate length of dit
-speed = (sequence[0] + sequence[1] / 3) / 2
+speed = (sequence[0]/3 + sequence[1] + sequence[2] + sequence[3] + sequence[4]/3 + sequence[5] + sequence[6] + sequence[7] + sequence[8]/3 + sequence[9]/3) / 10
 
-# Adjust the inputs to speed
+# Adjust input to speed
 
-for i in range(2,len(sequence)):
+for i in range(10,len(sequence)):
 	if sequence[i] < speed * 1.4:
 		sequence[i] = speed
 	elif sequence[i] >= speed * 1.4 and sequence[i] < speed * 5:
 		sequence[i] = speed * 3
 	elif sequence[i] >= sequence[0] * 5:
 		sequence[i] = speed * 7
-		
-		
+			
 print(sequence)
 
 # Input lengths are converted into a usable string
@@ -71,7 +70,7 @@ for x in range(2, len(sequence)):
 		elif sequence[x] == speed * 7:
 			enc += "|"
 
-# Translation begins here
+# Translate
 decoded = ""
 letter = ""
 translations = {"-.-.--":"!","|":" ",".-":"A", "-...":"B", "-.-.":"C","-..":"D",".":"E", "..-.":"F","--.":"G","....":"H","..":"I",".---":"J", "-.-":"K", ".-..":"L","--":"M","-.":"N","---":"O",".--.":"P","--.-":"Q",".-.":"R","...":"S","-":"T","..-":"U","...-":"V",".--":"W","-..-":"X","-.--":"Y","--..":"Z",".----":"1","..---":"2","...--":"3","....-":"4",".....":"5","-....":"6","--...":"7","---..":"8","----.":"9","-----":"0",".-.-.-":".","--..--":","}
