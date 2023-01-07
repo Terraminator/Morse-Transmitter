@@ -56,7 +56,7 @@ print(sequence)
 # Input lengths are converted into a usable string
 enc = ""
 
-for x in range(2, len(sequence)):
+for x in range(10, len(sequence)):
 	if x % 2 == 0:
 		if sequence[x] == speed:
 			enc += "."
