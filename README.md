@@ -68,3 +68,34 @@ Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, 
 
 
 ## audio transmission
+
+Dieser Transmitter basiert auf eine Übertragung über Schall. Ein Schallsensor und aktiver Buzzer wird jeweils an einen Raspberry PI angeschlossen. Wie bei der
+Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in das Senderprogramm audiosender.py in Morse-Code verschlüsselt. Jeder Buchstabenfolge wird
+ein "/" angehängt, Leerzeichen werden mit "|" ersetzt. Diese Zeichen stellen die verschiedenen Pausen dar.
+Man kann die Geschwindigkeit eines kurzen Tones (Dit) in Millisekunden bestimmen, wovon alle anderen Tonlängen ermittelt werden. Lange Töne und Pausen zwischen
+Buchstaben haben die dreifache, Pausen zwischen Wörtern die siebenfachewie Länge wie das eingegebene Tempo.
+Damit der Empfänger die Geschwindigkeit ermitteln kann, wird jeder Nachricht die Startsequenz "|-.-.-/" hinzugefügt. Diese wird zur Kalibrierung des Empfängers genutzt.
+Für jedes "." wird die Funktion shortsound(), für "-" longsound() abgerufen, welche den Buzzer für die vorher angegebene Zeit aktiviert.
+Um die Töne zu unterscheiden wird nach jedem Signal eine Pause mit der Länge eines Dits durchgeführt.
+
+Der Empfänger wartet anfangs, bis der Lautstärkepegel überschritten wird. Daraufhin wird ein Timer aktiviert, welcher so lange zählt, bis 
+entweder der Pegel unter- oder später überschritten wird. Wenn dies geschieht wird in die Liste "sequence" der Wert des Timers eingetragen und er auf 0 gesetzt.
+Diese Liste könnte entstehen: [65, 20, 24, 19, 57, 21, 17, 20, 67, 70, 20, 20, 20, 20, 20, 20, 20, 67, 18, 20, 59, 60, 18, 25, 59, 20, 21, 24, 13, 57, 24, 20, 65, 12, 
+19, 21, 10, 56, 70, 20, 66, 20, 61, 22]  Es stellt diese Sequenz dar:    "-.-.-/..../.-/.-../.-../---"   -> HALLO
+Die Aufnahme endet, wenn einige Zeit kein Ton empfangen wurde.
+
+Die Interpretation der Liste kann nur stattfinden, wenn die Sendegeschwindigkeit bekannt ist. Dazu wird die Startsequenz genutzt, um die durchschnittliche Länge eines 
+Dit zu ermitteln. Der Durchschnitt von den ersten zehn Elementen der Liste (Töne und Pausen) wird genommen, wobei lange Signale vorerst durch drei geteilt werden.
+In dem aufgegührten Beispiel wäre die vom Programm genutzte Geschwindigkeit gerundet 21. Nun werden alle Werte in der Liste, welche ungefähr dieser Zahl entsprechen, auf
+den selben Wert gebracht. Größere Werte werden auf das drei- oder siebenfache gerundet.
+So würde die Liste nun aussehen: [62, 21, 21, 21, 62, 21, 62, 21, 62, 62, 21, 21, 21, 21, 21, 21, 21, 62, 21, 21, 62, 62, 21, 21, 62, 21, 21, 21, 21, 62, 21, 21, 62, 21, 
+21, 21, 21, 62, 62, 21, 62, 21, 62, 21]
+Als nächstes wird die Zahlenliste in den oben bereits aufgegriffenen String "-.-.-/..../.-/.-../.-../---" konvertiert. Dabei ist zu beachten, dass das erste Element
+immer ein Ton ist. Das zweite Element ist daher garantiert eine Pause, das dritte ein Signal und so weiter.
+
+Schlussendlich werden alle Zeichen so lange in einen seperaten String namens "letter" gegeben bis ein "/" oder "|" erkannt wird, um alle Buchstaben voneinander zu 
+trennen. "letter" wird zurück in einen Buchstaben übersetzt, welcher der letzten Variable "decoded" hinzugefügt wird. Der String "letter" wird geleert. 
+Dieses Verfahren wird so oft wiederholt bis alle Buchstaben übersetzt worden sind. Die Startsequenz wird ignoriert.
+Falls die Sequenz falsch aufgenommen wurde und der Buchstabe nicht korrekt übersetzt werden kann wird eine Warnung ausgegeben und nach dem zweiten Zeichen des fragmentierten Buchstabens ein "/" eingefügt.
+
+Dieses ist deutlich empfindlicher bei Störgeräuschen, da es eine sehr schwache Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und passt sich automatisch an unterschiedliche Geschwindigkeiten an.
