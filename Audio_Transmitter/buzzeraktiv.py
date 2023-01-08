@@ -42,16 +42,16 @@ def convert(txt):
     enc = ""
     for char in txt:
         enc += decoded[char]
-    enc = "||./-|" + enc
+    enc = "|-.-.-/" + enc
     print(enc)
     speed = input("Enter length of a Dit (short signal): ")
     try:
         speed = float(speed)
         if speed <= 0:
-            print("Invalid input, using 0,3 instead.")
+            print("Invalid input, using 0.3 instead.")
             speed = 0.3
     except:
-        print("Invalid input, using 0,3 instead")
+        print("Invalid input, using 0.3 instead")
         speed = 0.3
     send(enc,speed)
     
