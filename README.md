@@ -90,12 +90,21 @@ In dem aufgegührten Beispiel wäre die vom Programm genutzte Geschwindigkeit ge
 den selben Wert gebracht. Größere Werte werden auf das drei- oder siebenfache gerundet.
 So würde die Liste nun aussehen: [62, 21, 21, 21, 62, 21, 62, 21, 62, 62, 21, 21, 21, 21, 21, 21, 21, 62, 21, 21, 62, 62, 21, 21, 62, 21, 21, 21, 21, 62, 21, 21, 62, 21, 
 21, 21, 21, 62, 62, 21, 62, 21, 62, 21]
-Als nächstes wird die Zahlenliste in den oben bereits aufgegriffenen String "-.-.-/..../.-/.-../.-../---" konvertiert. Dabei ist zu beachten, dass das erste Element
+Als nächstes wird die Zahlenliste in den oben bereits aufgegriffenen String "..../.-/.-../.-../---" konvertiert und dabei die Startsequenz gelöscht. Dabei ist zu 
+beachten, dass das erste Element
 immer ein Ton ist. Das zweite Element ist daher garantiert eine Pause, das dritte ein Signal und so weiter.
 
 Schlussendlich werden alle Zeichen so lange in einen seperaten String namens "letter" gegeben bis ein "/" oder "|" erkannt wird, um alle Buchstaben voneinander zu 
 trennen. "letter" wird zurück in einen Buchstaben übersetzt, welcher der letzten Variable "decoded" hinzugefügt wird. Der String "letter" wird geleert. 
 Dieses Verfahren wird so oft wiederholt bis alle Buchstaben übersetzt worden sind. Die Startsequenz wird ignoriert.
-Falls die Sequenz falsch aufgenommen wurde und der Buchstabe nicht korrekt übersetzt werden kann wird eine Warnung ausgegeben und nach dem zweiten Zeichen des fragmentierten Buchstabens ein "/" eingefügt.
+Falls die Sequenz falsch aufgenommen wurde und der Buchstabe nicht korrekt übersetzt werden kann wird eine Warnung ausgegeben und nach dem zweiten Zeichen des 
+fragmentierten Buchstabens ein "/" eingefügt.
 
-Dieses ist deutlich empfindlicher bei Störgeräuschen, da es eine sehr schwache Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und passt sich automatisch an unterschiedliche Geschwindigkeiten an.
+Wir sind auf besondere Probleme bei der Kalibrierung und korrekten Konfiguration des Audiosensors gestoßen. Den Ersten mussten wir tatsächlich wegen einem Defekt 
+ersetzen. Der Ersatz hat zwar funktioniert, jedoch gab er bei einem Signal keine konstante Ausgabe, wodurch sie als viele kurze Töne und Pausen interpretiert wurde.
+Um dies zu beheben, wird während der Tonaufnahme die Liste "last20" mit den letzten 20 Inputs gefüllt. Die unregelmäßigen Sequenzen werden geglättet, da nur eine 1 in 
+dieser Liste enthalten sein muss, um es als Ton aufzunehmen.
+Es gibt aber weiterhin die Gefahr, dass fehlerhafte Elemente in die Liste eingetragen werden. Daher werden alle Einträge, welche kleiner als 20 sind, gelöscht.
+
+Leider verhindert diese Sicherheitsmaßnahme jedoch, hohe Geschwindigkeiten einzustellen.
+Dieses Verfahren ist deutlich empfindlicher bei Störgeräuschen, da es kaum Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und passt sich automatisch an unterschiedliche Geschwindigkeiten an.
