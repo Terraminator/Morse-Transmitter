@@ -75,7 +75,7 @@ Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, 
 ## audio transmission
 
 Dieser Transmitter basiert auf eine Übertragung über Schall. Ein Schallsensor und aktiver Buzzer wird jeweils an einen Raspberry PI angeschlossen. Wie bei der
-Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in das Senderprogramm audiosender.py in Morse-Code verschlüsselt. Jeder Buchstabenfolge wird
+Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in dem Senderprogramm audiosender.py in Morse-Code verschlüsselt. Nach jedem Buchstaben wird
 ein "/" angehängt, Leerzeichen werden mit "|" ersetzt. Diese Zeichen stellen die verschiedenen Pausen dar.
 Man kann die Geschwindigkeit eines kurzen Tones (Dit) in Millisekunden bestimmen, wovon alle anderen Tonlängen ermittelt werden. Lange Töne und Pausen zwischen
 Buchstaben haben die dreifache, Pausen zwischen Wörtern die siebenfachewie Länge wie das eingegebene Tempo.
@@ -113,3 +113,4 @@ Es gibt aber weiterhin die Gefahr, dass fehlerhafte Elemente in die Liste einget
 
 Leider verhindert diese Sicherheitsmaßnahme jedoch, hohe Geschwindigkeiten einzustellen.
 Dieses Verfahren ist deutlich empfindlicher bei Störgeräuschen, da es kaum Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und passt sich automatisch an unterschiedliche Geschwindigkeiten an.
+
