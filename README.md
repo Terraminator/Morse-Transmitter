@@ -38,6 +38,7 @@ Dazu benutzten wir für jede Übertragungsform einen Raspberry Pi.
 Einer übermittelt die Information über Licht und konzentriert sich auf eine fehlerfreie Entschlüsselung durch Defragmentierung.
 Der Schwerpunkt des Audiotransmitters lag bei der anpassbaren Geschwindigkeit, welche jedoch die Wahrscheinlichkeit für Fehler erhöht.
 
+
 Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen ist.
 Beim Senden einer Nachricht wird diese zunächst in Morse Code übersetzt (sender.encrypt) und an eine Instanz der Klasse Transmitter(transmitter.py) übergeben. Dieser hängt ein Trennungszeichen (SEPERATOR) and den Morse Code an, um die Checksum von der Nachricht zu separieren.
 Für jedes Signal in der Nachricht wird die LED für den Zeitraum transmitter.LONG bei "-" und für einen Zeitraum transmitter.SHORT bei "." aktiviert. Wenn nach einem Signal ein Abstand ist, wird nach dem Aktivieren der LED diese für den Zeitraum transmitter.LONG abgeschaltet, um die Buchstaben voneinander zu trennen andernfalls wird sie für den Zeitraum transmitter.SHORT deaktiviert, um zwischen Signalen unterscheiden zu können.
@@ -72,11 +73,12 @@ Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, 
 
 
 
-## audio transmission
+## Audioübertragung
 
-Dieser Transmitter basiert auf eine Übertragung über Schall. Ein Schallsensor und aktiver Buzzer wird jeweils an einen Raspberry PI angeschlossen. Wie bei der
-Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in dem Senderprogramm audiosender.py in Morse-Code verschlüsselt. Nach jedem Buchstaben wird
-ein "/" angehängt, Leerzeichen werden mit "|" ersetzt. Diese Zeichen stellen die verschiedenen Pausen dar.
+Dieser Transmitter basiert auf eine Übertragung über Schall. Ein Schallsensor und aktiver Buzzer wird jeweils an einen Raspberry PI angeschlossen. 
+# bild vom raspberry einfügen
+
+Wie bei der Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in dem Senderprogramm audiosender.py in Morse-Code verschlüsselt. Nach jedem Buchstaben wird ein "/" angehängt, Leerzeichen werden mit "|" ersetzt. Diese Zeichen stellen die verschiedenen Pausen dar.
 Man kann die Geschwindigkeit eines kurzen Tones (Dit) in Millisekunden bestimmen, wovon alle anderen Tonlängen ermittelt werden. Lange Töne und Pausen zwischen
 Buchstaben haben die dreifache, Pausen zwischen Wörtern die siebenfachewie Länge wie das eingegebene Tempo.
 Damit der Empfänger die Geschwindigkeit ermitteln kann, wird jeder Nachricht die Startsequenz "|-.-.-/" hinzugefügt. Diese wird zur Kalibrierung des Empfängers genutzt.
@@ -105,12 +107,19 @@ Dieses Verfahren wird so oft wiederholt bis alle Buchstaben übersetzt worden si
 Falls die Sequenz falsch aufgenommen wurde und der Buchstabe nicht korrekt übersetzt werden kann wird eine Warnung ausgegeben und nach dem zweiten Zeichen des 
 fragmentierten Buchstabens ein "/" eingefügt.
 
-Wir sind auf besondere Probleme bei der Kalibrierung und korrekten Konfiguration des Audiosensors gestoßen. Den Ersten mussten wir tatsächlich wegen einem Defekt 
-ersetzen. Der Ersatz hat zwar funktioniert, jedoch gab er bei einem Signal keine konstante Ausgabe, wodurch sie als viele kurze Töne und Pausen interpretiert wurde.
+Wir sind auf besondere Probleme bei der Kalibrierung und korrekten Konfiguration des Audiosensors gestoßen. Anfangs mussten wir tatsächlich den Empfänger wegen einem 
+Defekt ersetzen. Der Ersatz hat zwar funktioniert, jedoch gab er bei einem Signal keine konstante Ausgabe, wodurch sie als viele kurze Töne und Pausen interpretiert 
+wurde. Beispiel: [3, 2, 4, 1, 3, 2, 1, 1, 2, 1, 4, 2, 1, 65]  Das gesendete Signal: [27, 65] Beachte, dass die "27" ein Signal und die "65" eine Pause darstellt.
 Um dies zu beheben, wird während der Tonaufnahme die Liste "last20" mit den letzten 20 Inputs gefüllt. Die unregelmäßigen Sequenzen werden geglättet, da nur eine 1 in 
-dieser Liste enthalten sein muss, um es als Ton aufzunehmen.
-Es gibt aber weiterhin die Gefahr, dass fehlerhafte Elemente in die Liste eingetragen werden. Daher werden alle Einträge, welche kleiner als 20 sind, gelöscht.
+dieser Liste enthalten sein muss, um es als Ton wahrzunehmen.
+Es besteht aber weiterhin die Gefahr, dass fehlerhafte Elemente in die Liste eingetragen werden. Daher werden alle Einträge der Liste, welche kleiner als 20 sind, 
+gelöscht.
+Leider führt diese Sicherheitsmaßnahme aber auch dazu, dass bei sehr hohen Geschwindigkeiten Töne von Störsignalen nicht mehr unterschieden werden können.
 
-Leider verhindert diese Sicherheitsmaßnahme jedoch, hohe Geschwindigkeiten einzustellen.
-Dieses Verfahren ist deutlich empfindlicher bei Störgeräuschen, da es kaum Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und passt sich automatisch an unterschiedliche Geschwindigkeiten an.
+Nach einigen Versuchen stellte sich heraus, dass bis zu einer Geschwindigkeit von 60 Millisekunden pro Dit mit geringer Fehlerwahrscheinlichkeit gesendet werden kann.
+Allerdings ist auch bei besonders langsamen Sendetempo das Risiko einer inkorrekten Übersetzung größer, da ein langer Ton wegen einer kurzen Fehlaufnahme getrennt und 
+als zwei kurze interpretiert werden kann. Die Obergrenze liegt bei durchschnittlich einer Sekunde.
+
+Dieses Verfahren ist deutlich empfindlicher bei Störgeräuschen, da es kaum Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und 
+passt sich automatisch an unterschiedliche Geschwindigkeiten an.
 
