@@ -33,6 +33,11 @@ Usage of morse receiver:
 
 documentation of functionality in Light_Transmission in german:  
 
+In unserem Projekt bauten und programmierten wir zwei verschiedene Morse-Code Transmitter mit jeweils einem Sender und Empfänger.
+Dazu benutzten wir für jede Übertragungsform einen Raspberry Pi.
+Einer übermittelt die Information über Licht und konzentriert sich auf eine fehlerfreie Entschlüsselung durch Defragmentierung.
+Der Schwerpunkt des Audiotransmitters lag bei der anpassbaren Geschwindigkeit, welche jedoch die Wahrscheinlichkeit für Fehler erhöht.
+
 Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen ist.
 Beim Senden einer Nachricht wird diese zunächst in Morse Code übersetzt (sender.encrypt) und an eine Instanz der Klasse Transmitter(transmitter.py) übergeben. Dieser hängt ein Trennungszeichen (SEPERATOR) and den Morse Code an, um die Checksum von der Nachricht zu separieren.
 Für jedes Signal in der Nachricht wird die LED für den Zeitraum transmitter.LONG bei "-" und für einen Zeitraum transmitter.SHORT bei "." aktiviert. Wenn nach einem Signal ein Abstand ist, wird nach dem Aktivieren der LED diese für den Zeitraum transmitter.LONG abgeschaltet, um die Buchstaben voneinander zu trennen andernfalls wird sie für den Zeitraum transmitter.SHORT deaktiviert, um zwischen Signalen unterscheiden zu können.
