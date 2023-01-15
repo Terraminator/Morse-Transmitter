@@ -2,11 +2,6 @@
 Sending and receiving morse signals via a Raspberry Pi using light and sound
 
 
-## light transmission
-
-### demo video:
-<a>https://youtu.be/I8XN870DwOY</a>
-
 calculating resistance of led:
 R=U/I ( Ohmsches Gesetz )
 
@@ -42,6 +37,9 @@ Beide Transmitter schafften wir unabhängig voneinander, sodass wir später die 
 
 
 ## Lichtübertragung
+### demo video:
+<a>https://youtu.be/I8XN870DwOY</a>
+
 Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen 
 ist.
 Beim Senden einer Nachricht wird diese zunächst in Morse Code übersetzt (sender.encrypt) und an eine Instanz der Klasse Transmitter(transmitter.py) übergeben. Dieser 
