@@ -35,40 +35,65 @@ documentation of functionality in Light_Transmission in german:
 
 In unserem Projekt bauten und programmierten wir zwei verschiedene Morse-Code Transmitter mit jeweils einem Sender und Empfänger.
 Dazu benutzten wir für jede Übertragungsform einen Raspberry Pi.
-Einer übermittelt die Information über Licht und konzentriert sich auf eine fehlerfreie Entschlüsselung durch Defragmentierung.
-Der Schwerpunkt des Audiotransmitters lag bei der anpassbaren Geschwindigkeit, welche jedoch die Wahrscheinlichkeit für Fehler erhöht.
+
+Erik erstellte den Lichttransmitter mit einem besonderem Fokus auf eine starke Defragmentierung.
+Felix programmierte die Übertragung mit Schall, der Schwerpunkt lag dabei bei der einstellbaren Sendegeschwindindigkeit.
+Beide Transmitter schafften wir unabhängig voneinander, sodass wir später die Vor- und Nachteile der jeweiligen Spezialisierungen abwägen konnten.
 
 
-Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen ist.
-Beim Senden einer Nachricht wird diese zunächst in Morse Code übersetzt (sender.encrypt) und an eine Instanz der Klasse Transmitter(transmitter.py) übergeben. Dieser hängt ein Trennungszeichen (SEPERATOR) and den Morse Code an, um die Checksum von der Nachricht zu separieren.
-Für jedes Signal in der Nachricht wird die LED für den Zeitraum transmitter.LONG bei "-" und für einen Zeitraum transmitter.SHORT bei "." aktiviert. Wenn nach einem Signal ein Abstand ist, wird nach dem Aktivieren der LED diese für den Zeitraum transmitter.LONG abgeschaltet, um die Buchstaben voneinander zu trennen andernfalls wird sie für den Zeitraum transmitter.SHORT deaktiviert, um zwischen Signalen unterscheiden zu können.
-Im Anschluss der Nachricht und dem Trennungszeichen z.B "HALLO WELT#" wird die Checksum gesendet. Diese Berechnet sich durch die Addition der Interpretation eines Zeichens in Form einer Zahl laut der ASCII Tabelle jedes Zeichens, welches übermittelt wird.
+## Lichtübertragung
+Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen 
+ist.
+Beim Senden einer Nachricht wird diese zunächst in Morse Code übersetzt (sender.encrypt) und an eine Instanz der Klasse Transmitter(transmitter.py) übergeben. Dieser 
+hängt ein Trennungszeichen (SEPERATOR) and den Morse Code an, um die Checksum von der Nachricht zu separieren.
+Für jedes Signal in der Nachricht wird die LED für den Zeitraum transmitter.LONG bei "-" und für einen Zeitraum transmitter.SHORT bei "." aktiviert. Wenn nach einem 
+Signal ein Abstand ist, wird nach dem Aktivieren der LED diese für den Zeitraum transmitter.LONG abgeschaltet, um die Buchstaben voneinander zu trennen andernfalls wird 
+sie für den Zeitraum transmitter.SHORT deaktiviert, um zwischen Signalen unterscheiden zu können.
+Im Anschluss der Nachricht und dem Trennungszeichen z.B "HALLO WELT#" wird die Checksum gesendet. Diese Berechnet sich durch die Addition der Interpretation eines 
+Zeichens in Form einer Zahl laut der ASCII Tabelle jedes Zeichens, welches übermittelt wird.
 Eine Vollständige Nachricht könnte zum Beispiel so aussehen: HALLO WELT#716 (.... .- .-.. .-.. --- /.-- . .-.. - #--... .---- -....).
 
 
-Der Empfänger hingegen liest alle transmitter.delay_sleep Sekunden den Input Pin des Fotowiderstands ab und speichert sie in einer Liste. Ein Leuchten der LED wird als "+" repräsentiert und Dunkelheit als "-". Sobald sich der Status des Pins ändert, wird die Liste um ein neues Element erweitert.
+Der Empfänger hingegen liest alle transmitter.delay_sleep Sekunden den Input Pin des Fotowiderstands ab und speichert sie in einer Liste. Ein Leuchten der LED wird als 
+"+" repräsentiert und Dunkelheit als "-". Sobald sich der Status des Pins ändert, wird die Liste um ein neues Element erweitert.
 Erst nachdem die ganze Nachricht in der Liste abgespeichert wurde, wird diese ausgewertet.
 Beim Speichern wird ein Input unter 0.3 als hell interpretiert und alles darüber als dunkel um weniger sensitiv gegenüber dem Umgebungslicht zu sein.
-Man erhält durch dieses Vorgehen eine Liste wie diese: ['+++++', '-----', '+++++', '-----', '+++++', '-----', '+++++', '---------------', '+++++', '-----', '++++++++++', '---------------', '+++++', '-----', '++++++++++', '-----', '++++', '------', '+++++', '--------------', '++++++', '-----', '++++++++++', '-----', '++++', '-----', '++++++', '---------------', '+++++++++', '------', '+++++++++', '------', '+++++++++', '----------------', '+++++++++', '------', '++++', '-----', '+++++', '------', '+++++++++', '------', '++++', '---------------', '+++++', '------', '+++++++++', '-----', '++++++++++', '---------------', '+++++', '---------------', '+++++', '----', '++++++++++', '-----', '++++++', '-----', '++++', '---------------', '++++++++++', '---------------', '++++++++++', '-----', '++++++', '-----', '++++', '-----', '++++++++++', '-----', '++++++++++', '----------', '++++++++++', '-----', '++++++++++', '-----', '+++++', '------', '++++', '-----', '+++++', '----------------', '++++', '-----', '++++++++++', '-----', '++++++++++', '-----', '++++++++++', '-----', '++++++++++', '---------------', '++++++++++', '-----', '+++++', '-----', '++++', '------', '+++++', '-----', '++++']
+Man erhält durch dieses Vorgehen eine Liste wie diese: ['+++++', '-----', '+++++', '-----', '+++++', '-----', '+++++', '---------------', '+++++', '-----', '++++++++++', 
+'---------------', '+++++', '-----', '++++++++++', '-----', '++++', '------', '+++++', '--------------', '++++++', '-----', '++++++++++', '-----', '++++', '-----', 
+'++++++', '---------------', '+++++++++', '------', '+++++++++', '------', '+++++++++', '----------------', '+++++++++', '------', '++++', '-----', '+++++', '------', 
+'+++++++++', '------', '++++', '---------------', '+++++', '------', '+++++++++', '-----', '++++++++++', '---------------', '+++++', '---------------', '+++++', '----', 
+'++++++++++', '-----', '++++++', '-----', '++++', '---------------', '++++++++++', '---------------', '++++++++++', '-----', '++++++', '-----', '++++', '-----', 
+'++++++++++', '-----', '++++++++++', '----------', '++++++++++', '-----', '++++++++++', '-----', '+++++', '------', '++++', '-----', '+++++', '----------------', '++++', 
+'-----', '++++++++++', '-----', '++++++++++', '-----', '++++++++++', '-----', '++++++++++', '---------------', '++++++++++', '-----', '+++++', '-----', '++++', '------', 
+'+++++', '-----', '++++']
 Zur Interpretation dieser werden drei Bereiche deklariert die durch transmitter.delay_sleep, transmitter.LONG sowie transmitter.SHORT berechnet werden.
 z.B wäre bei der Standard Konfiguration "++++" als "." also kurzes Signal zu interpretieren und ein "++++++++++" als "-" also langes Signal.
 Ein neuer Buchstabe wird durch viele "---------------" erkennbar und die Trennung zwischen Signalen werden durch wenige "-----" gekennzeichnet.
 Daraus folgt eine Morse Botschaft: z.B .... .- .-.. .-.. --- /.-- . .-.. - #--... .---- -.... was als HALLO WELT#716 übersetzt werden kann.
-nach dieser Interpretation wird die Botschaft in Checksum und Nachricht aufgeteilt und überprüft, ob die übermittelte Botschaft mit der selbst ausgerechneten Checksum übereinstimmt.
+nach dieser Interpretation wird die Botschaft in Checksum und Nachricht aufgeteilt und überprüft, ob die übermittelte Botschaft mit der selbst ausgerechneten Checksum 
+übereinstimmt.
 Sollte dies nicht der Fall sein und die Checksum eine Zahl ist also voraussichtlich richtig übermittelt wurde, wird versucht die Nachricht zu defragmentieren.
-Hierbei wird eine Wortliste aus häufigen Wörtern mit den Unbekannten Wörtern der Nachricht verglichen und bei einer Levenshtein Distanz unter drei als das Wort als Kandidat für ein unbekanntes Wort in Betracht gezogen.
+Hierbei wird eine Wortliste aus häufigen Wörtern mit den Unbekannten Wörtern der Nachricht verglichen und bei einer Levenshtein Distanz unter drei als das Wort als 
+Kandidat für ein unbekanntes Wort in Betracht gezogen.
 
-Wenn nach Überprüfen aller möglichen Wörter in allen Variationen die erwartete Checksum erreicht wird und keine unbekannten Wörter mehr in der Nachrricht vorhanden sind, wird die defragmentierte Nachricht zurückgegeben, andernfalls wird die fragmentierte Nachricht ausgegeben und ein Fehler zurückgegeben.
+Wenn nach Überprüfen aller möglichen Wörter in allen Variationen die erwartete Checksum erreicht wird und keine unbekannten Wörter mehr in der Nachrricht vorhanden sind, 
+wird die defragmentierte Nachricht zurückgegeben, andernfalls wird die fragmentierte Nachricht ausgegeben und ein Fehler zurückgegeben.
 In dem Fall, dass die Checksum voraussichtlich falsch übertragen wurde, wird nicht versucht die Nachricht zu defragmentieren und ein Fehler wird zurückgegeben.
 Wenn die Nachricht wie erwartet eintrifft wird diese zurückgegeben.
 
-Die Konstanten transmitter.LONG und transmitter.SHORT können dynamisch nach oben erweitert aber nicht weiter reduziert werden ohne massive Fehler in der Übertragung auszulösen. Weiterhin ist zu beachten, dass transmitter.LONG doppelt so groß wie transmitter.SHORT sein sollte, um eine einwandfreie Unterscheidung zu gewährleisten.
-Es ist zudem nicht möglich diese beiden Konstanten weiter zu verringern, und die Konstanten OFF_SHORT und OFF_LONG einzuführen, welche die übliche Größe von transmitter.LONG und transmitter.SHORT aufweisen.
+Die Konstanten transmitter.LONG und transmitter.SHORT können dynamisch nach oben erweitert aber nicht weiter reduziert werden ohne massive Fehler in der Übertragung 
+auszulösen. Weiterhin ist zu beachten, dass transmitter.LONG doppelt so groß wie transmitter.SHORT sein sollte, um eine einwandfreie Unterscheidung zu gewährleisten.
+Es ist zudem nicht möglich diese beiden Konstanten weiter zu verringern, und die Konstanten OFF_SHORT und OFF_LONG einzuführen, welche die übliche Größe von 
+transmitter.LONG und transmitter.SHORT aufweisen.
 Auch dies führt zur vollständigen Fehlübertragung der Nachricht.
-Weiterhin ist es wichtig, dass transmitter.SEPERATOR nicht denselben Anfang von transmitter.EOB hat, da andernfalls transmitter.SEPERATOR andernfalls falsch interpretiert wird.
-Die erwartete Zeit wird durch die gleiche Funktion wie in transmitter.send berechnet, danach wird diese Schätzung ein wenig erhöht um tendenziell eher zu viel Zeit als zu wenig zu schätzen.
+Weiterhin ist es wichtig, dass transmitter.SEPERATOR nicht denselben Anfang von transmitter.EOB hat, da andernfalls transmitter.SEPERATOR andernfalls falsch 
+interpretiert wird.
+Die erwartete Zeit wird durch die gleiche Funktion wie in transmitter.send berechnet, danach wird diese Schätzung ein wenig erhöht um tendenziell eher zu viel Zeit als 
+zu wenig zu schätzen.
 
-Das Morse Verfahren ist anderen Verfahren in der Geschwindigkeit deutlich unterlegen, da diese z.B das Licht modulieren und so mehr Daten gleichzeitig senden können, auch die Hardware ist im Vergleich zu Glasfaser Technolgien oder ähnlichem eher langsam, da diese mit einer Verzögerung schaltet keine besonders starke Lichtquelle verwendet wird.
+Das Morse Verfahren ist anderen Verfahren in der Geschwindigkeit deutlich unterlegen, da diese z.B das Licht modulieren und so mehr Daten gleichzeitig senden können, 
+auch die Hardware ist im Vergleich zu Glasfaser Technolgien oder ähnlichem eher langsam, da diese mit einer Verzögerung schaltet keine besonders starke Lichtquelle 
+verwendet wird.
 Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, da eine Nachricht anhand einer Cheksum wiederhergestellt werden kann.
 
 
@@ -116,10 +141,10 @@ Es besteht aber weiterhin die Gefahr, dass fehlerhafte Elemente in die Liste ein
 gelöscht.
 Leider führt diese Sicherheitsmaßnahme aber auch dazu, dass bei sehr hohen Geschwindigkeiten Töne von Störsignalen nicht mehr unterschieden werden können.
 
+
 Nach einigen Versuchen stellte sich heraus, dass bis zu einer Geschwindigkeit von 60 Millisekunden pro Dit mit geringer Fehlerwahrscheinlichkeit gesendet werden kann.
 Allerdings ist auch bei besonders langsamen Sendetempo das Risiko einer inkorrekten Übersetzung größer, da ein langer Ton wegen einer kurzen Fehlaufnahme getrennt und 
 als zwei kurze interpretiert werden kann. Die Obergrenze liegt bei durchschnittlich einer Sekunde.
 
 Dieses Verfahren ist deutlich empfindlicher bei Störgeräuschen, da es kaum Defragmentierung besitzt, jedoch ist es auf die offiziellen Morse-Code Standards ausgelegt und 
 passt sich automatisch an unterschiedliche Geschwindigkeiten an.
-
