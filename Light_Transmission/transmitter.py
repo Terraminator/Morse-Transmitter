@@ -214,30 +214,6 @@ class Transmitter:
 				morse += "."
 		return(morse.replace(SEPERATOR, "#").replace(EOB, "/")) # removing seperators from message
 
-	def __sync(self):
-		print("waiting for start sequence!") #start seq: -.-.
-		l1=0
-		while self.__round_brightness(gpio.input(self.pin2))==0: l1+=1
-		while self.__round_brightness(gpio.input(self.pin2))==1: pass
-		s1=0
-		while self.__round_brightness(gpio.input(self.pin2))==0: s1+=1
-		while self.__round_brightness(gpio.input(self.pin2))==1: pass
-		l2=0
-		while self.__round_brightness(gpio.input(self.pin2))==0: l2+=1
-		while self.__round_brightness(gpio.input(self.pin2))==1: pass
-		s2=0
-		while self.__round_brightness(gpio.input(self.pin2))==0: s2+=1
-		while self.__round_brightness(gpio.input(self.pin2))==1: pass
-		self.timeout=np.mean([l1,l2])*4
-		print(l1, l2, s1, s2)
-		self.rlong=np.arange(0.75*np.mean([l1,l2]), 1,25*np.mean([l1,l2]))
-		self.rshort=np.arange(0.75*np.mean([s1,s2]), 1,25*np.mean([s1,s2]))
-
-		while  self.__round_brightness(gpio.input(self.pin2)) == 1: self.timeout +=1
-		print("timeout: {}".format(str(self.timeout)))
-		print("rlong: {}".format(str(self.rlong)))
-		print("rshort: {}".format(str(self.rshort)))
-
 	def __recv(self):
 			status = 0
 			stop = False
