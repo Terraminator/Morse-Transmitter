@@ -14,7 +14,7 @@ R = 325Ohm -> 330 Ohm
 
 ![image](https://gpiozero.readthedocs.io/en/stable/_images/pin_layout.svg)
 
-
+![image](https://raw.githubusercontent.com/Terraminator/Morse-Transmitter/main/Light_Transmission/pi.JPEG)
 
 Setup:
 <pre>cd Light_Transmission</pre>  
