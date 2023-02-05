@@ -8,6 +8,7 @@ if __name__ == "__main__":
 	mitter = Transmitter(17, 18, "ldr")
 	msg = -1
 	msg = mitter.recv()
+	mitter.cleanup()
 	if msg == -1:
 		msg = "ERROR"
 	print("message:\n" + str(msg))

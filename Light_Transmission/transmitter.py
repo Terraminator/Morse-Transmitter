@@ -1,20 +1,18 @@
-from gpiozero import LED, LightSensor
+#from gpiozero import LED, LightSensor
+import RPi.GPIO as gpio
 import time
 import numpy as np
-import re
 
 abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"] #abc enum for checksum
-morse = {".-":"A", "-...":"B", "-.-.":"C", "-..":"D", ".":"E", "..-.":"F", "--.":"G", "....":"H", "..":"I", ".---":"J", "-.-":"K", ".-..":"L", "--":"M", "-.":"N", "---":"O", ".--.":"P", "--.-":"Q", ".-.":"R", "...":"S", "-":"T", "..-":"U", "...-":"V", ".--":"W", "-..-":"X", "-.--":"Y", "--..":"Z", ".----":"1", "..---":"2", "...--":"3", "....-":"4", ".....":"5", "-....":"6", "--...":"7", "---..":"8", "----.":"9", "-----":"0", "-..-.":"/", "":""}
-rev_m  = {"A":".-", "B":"-...", "C":"-.-.", "D":"-..", "E":".", "F":"..-.", "G":"--.", "H":"....", "I":"..", "J":".---", "K":"-.-", "L":".-..", "M":"--", "N":"-.", "O":"---", "P":".--.", "Q":"--.-", "R":".-.", "S":"...", "T": "-", "U":"..-", "V":"...-", "W":".--", "X":"-..-", "Y":"-.--", "Z":"--..", "1":".----", "2":"..---", "3":"...--", "4":"....-", "5":".....", "6":"-....", "7":"--...", "8":"---..", "9":"----.", "0":"-----", "/":"-..-.", "":"", "#":"-..-.."}
+morse = {".-":"A", "-...":"B", "-.-.":"C", "-..":"D", ".":"E", "..-.":"F", "--.":"G", "....":"H", "..":"I", ".---":"J", "-.-":"K", ".-..":"L", "--":"M", "-.":"N", "---":"O", ".--.":"P", "--.-":"Q", ".-.":"R", "...":"S", "-":"T", "..-":"U", "...-":"V", ".--":"W", "-..-":"X", "-.--":"Y", "--..":"Z", ".----":"1", "..---":"2", "...--":"3", "....-":"4", ".....":"5", "-....":"6", "--...":"7", "---..":"8", "----.":"9", "-----":"0", "--..--":",", "-.-.--":"!", "-.--.":"(", "-.--.-":")", "..--..":"?", ".-.-.":"+", "":"", ".-.-.-":".", "-.-.-.":";"}
+rev_m  = {"A":".-", "B":"-...", "C":"-.-.", "D":"-..", "E":".", "F":"..-.", "G":"--.", "H":"....", "I":"..", "J":".---", "K":"-.-", "L":".-..", "M":"--", "N":"-.", "O":"---", "P":".--.", "Q":"--.-", "R":".-.", "S":"...", "T": "-", "U":"..-", "V":"...-", "W":".--", "X":"-..-", "Y":"-.--", "Z":"--..", "1":".----", "2":"..---", "3":"...--", "4":"....-", "5":".....", "6":"-....", "7":"--...", "8":"---..", "9":"----.", "0":"-----", "#":"-..-..", ",":"--..--", "!":"-.-.--", "(":"-.--.", ")":"-.--.-", "?":"..--..", "+":".-.-.", "":"", ".":".-.-.-",";":"-.-.-."}
 
-#LONG = 1 # long delay -> -
-#SHORT = 0.5 # short delay -> .
-LONG = 1 # long delay -> -
-SHORT = 0.5 # short delay -> .
-#OFF_DELAY = 1
+LONG = 0.02 # long delay -> -
+SHORT=0.01 # short delay -> .
+scale = 1
 EOB = "-..-. " # /
-SEPERATOR = "-..-- " # #
-delay_sleep = 0.1
+SEPERATOR = "-..--.-- " # #
+delay_sleep = 0.001
 
 # bring wordlist to right format
 with open("3000_de.txt", "r") as wordlist:
@@ -51,21 +49,31 @@ def levenshtein(seq1, seq2):
 class Transmitter:
 
 	def __init__(self, pin1=17, pin2=18, mode="led"):
+		self.rlong = 0
+		self.rshort = 0
+		self.timeout = 0
+		self.cc = 0
+		gpio.setmode(gpio.BCM)
 		if mode == "led":
-			self.led = LED(pin1) #setting up led pin
-			self.led.value = 0
+			gpio.setup(pin1, gpio.OUT)
+			#self.led = LED(pin1) #setting up led pin
+			#self.led.value = 0
+			gpio.output(pin1, gpio.LOW)
 		elif mode == "ldr":
-			self.ldr = LightSensor(pin2) # setting up lightsensor pin
+			gpio.setup(pin2, gpio.IN)
+			#self.ldr = LightSensor(pin2) # setting up lightsensor pin
 		self.pin1 = int(pin1) # LED
 		self.pin2 = int(pin2) # LightSensor
 		
 	def __blink(self, delay, OFF_DELAY=SHORT): # declaring private method
 		delay = float(delay) 
-		self.led.value = 0 # turn led off 
-		self.led.value = 1 # turn led on
+		#self.led.value = 0 # turn led off 
+		#gpio.output(self.pin1, gpio.LOW)
+		gpio.output(self.pin1, gpio.HIGH)
 		time.sleep(delay)
-		self.led.value = 0
+		gpio.output(self.pin1, gpio.LOW)
 		time.sleep(OFF_DELAY)
+		self.cc+=2
 
 	def __get_candidates(self, u, words):
 			candidates= {}
@@ -134,6 +142,7 @@ class Transmitter:
 		return(dec)
 		
 	def encrypt(self, msg):
+		msg = msg.upper().strip("\n").replace("Ö", "OE").replace("Ä", "AE").replace("ß", "SZ").replace("Ü", "UE")
 		enc = ""
 		for c in msg:
 			try:
@@ -149,9 +158,9 @@ class Transmitter:
 	def __send(self, sig, mode=""): # declaring private send method
 			sig = str(sig)
 			if mode == "space":
-				OFF_DELAY = LONG
+				OFF_DELAY = LONG#0.9
 			else:
-				OFF_DELAY = SHORT
+				OFF_DELAY = SHORT#0.3
 			if sig == ".":
 				self.__blink(SHORT, OFF_DELAY)
 			elif sig == "-":
@@ -161,10 +170,10 @@ class Transmitter:
 					self.__send(sig)
 			else:
 				time.sleep(OFF_DELAY)
+
 	def send(self, morse, m=""):
 		if m == "":
 			morse += SEPERATOR
-		ms = ""
 		morse = str(morse)
 		print('\n"' + morse + '"')
 		print("live: ", end="", flush=True)
@@ -178,22 +187,24 @@ class Transmitter:
 					self.__send(sig) 
 		if m == "":
 			checksum = str(self.checksum(self.decrypt(morse.replace(SEPERATOR, ""))))
-			print("\nchecksum: " + checksum)
+			print("\n\nchecksum: " + checksum)
 			print("encrypted: " + str(self.encrypt(checksum)) + "\n")
+			print("sending checksum!")
 			self.send(self.encrypt(str(checksum)), m="check")
+			print("\nsent {} signals!".format(self.cc))
 		return(0)
 		
 	def __round_brightness(self, value):
 		if value <= 0.3:
-			return("+") # bright
+			return(0) # bright
 		else:
-			return("-") #dark
+			return(1) #dark
 
 	def __sigs_to_morse(self, sigs):
 		morse = ""
-		count_long = np.arange((float(LONG)/delay_sleep)-2, (float(LONG/delay_sleep))+2, 1)
-		count_short = np.arange((float(SHORT)/delay_sleep)-2, (float(SHORT/delay_sleep))+2, 1)
-		count_space = np.arange((float(LONG)/delay_sleep)-2, 500.0)#(float(LONG/delay_sleep))+2, 1) 
+		count_long = np.arange((LONG/delay_sleep*scale)-8, 500, 1)
+		count_short = np.arange(1, (SHORT/delay_sleep*scale)+8, 1)
+		count_space = np.arange((LONG/delay_sleep*scale)-8, 500.0)
 		for sig in sigs:
 			if sig.count("-") in count_space:
 				morse += " "
@@ -203,37 +214,62 @@ class Transmitter:
 				morse += "."
 		return(morse.replace(SEPERATOR, "#").replace(EOB, "/")) # removing seperators from message
 
-	def __recv(self):
-			msg = ""
-			data = ""
-			status = ""
-			delta = 0
-			while self.ldr.value > 0.3: pass
-			print("Beginning to listen...")
-			start = time.time()
-			while delta < LONG+2:
-				if status != self.__round_brightness(self.ldr.value):
-					start = time.time()
-					data += ";"
-					print(";", end="", flush=True)
-				status = self.__round_brightness(self.ldr.value)
-				data = data + status
-				print(status, end="", flush=True)
-				time.sleep(delay_sleep)
-				delta = time.time() - start
+	def __sync(self):
+		print("waiting for start sequence!") #start seq: -.-.
+		l1=0
+		while self.__round_brightness(gpio.input(self.pin2))==0: l1+=1
+		while self.__round_brightness(gpio.input(self.pin2))==1: pass
+		s1=0
+		while self.__round_brightness(gpio.input(self.pin2))==0: s1+=1
+		while self.__round_brightness(gpio.input(self.pin2))==1: pass
+		l2=0
+		while self.__round_brightness(gpio.input(self.pin2))==0: l2+=1
+		while self.__round_brightness(gpio.input(self.pin2))==1: pass
+		s2=0
+		while self.__round_brightness(gpio.input(self.pin2))==0: s2+=1
+		while self.__round_brightness(gpio.input(self.pin2))==1: pass
+		self.timeout=np.mean([l1,l2])*4
+		print(l1, l2, s1, s2)
+		self.rlong=np.arange(0.75*np.mean([l1,l2]), 1,25*np.mean([l1,l2]))
+		self.rshort=np.arange(0.75*np.mean([s1,s2]), 1,25*np.mean([s1,s2]))
 
+		while  self.__round_brightness(gpio.input(self.pin2)) == 1: self.timeout +=1
+		print("timeout: {}".format(str(self.timeout)))
+		print("rlong: {}".format(str(self.rlong)))
+		print("rshort: {}".format(str(self.rshort)))
+
+	def __recv(self):
+			status = 0
+			stop = False
+			#self.__sync()
+			junk = ""
+			raw = ""
+			ls = 0
+			while gpio.input(self.pin2) > 0.3: pass
+			print("Beginning to listen...")
+			while not stop:
+				status = str(self.__round_brightness(gpio.input(self.pin2)))
+				junk += status 
+				if ls != status: 
+					raw+=round(len(junk)*scale)*str(ls)
+					junk = status
+				ls = status
+				if len(junk)>LONG/delay_sleep*8:
+					stop = True
+				
+				time.sleep(delay_sleep)
+			del junk
 			print("\nevaluating data...")
-			sigs = data.split(";")
-			#print("raw sigs: ", sigs)
-			del sigs[0]
-			del sigs[-1]
+			raw = raw.replace("0", "+").replace( "1", "-").replace("+-", ";").replace("-+",";")
+			sigs=raw.split(";")
+			print("got", len(sigs), "sigs!")
+
 			print("sigs:", sigs)
 			print("morse:", self.__sigs_to_morse(sigs))
 			morse_full = str(self.decrypt(self.__sigs_to_morse(sigs)))
 			print("________________________________________________")
 			print("morse_full: ", morse_full)
 			print("________________________________________________")
-			#print(morse_full.split("#"))
 			if len(morse_full.split("#"))<2:
 				print("message corrupted!")
 				return(-1)
@@ -241,43 +277,44 @@ class Transmitter:
 			print(mf)
 			msg = mf[0]
 			checksum = mf[1]
-			#print(sigs)
 			print("________________________________")
 			print("checksum: " + str(checksum))
 			print("msg: " + str(msg))
 			return(msg, checksum)
 		
 	def recv(self):
-			# receiving msg
-			#for i in range(0, 2): # receiving 2 times to avoid packet loss - but it is still possible
-			try:
-				msg, check = self.__recv()
-			except Exception as e:
-				print(e)
-				msg= "ERROR"
-				check=0
-			try:
-				if int(self.checksum(msg)) == int(check):
-					return(msg) # if checksum matches return message
-				elif check != 0:
-					print("\nfragmented msg: " + str(msg))
-					msg = self.defrag(msg, check)
-					if msg == -1:
-						print("Couldnt defrag message!")
-					else:
-						print("defragemented msg: " + str(msg))
-						return(msg)
-					return(-1) # if checksum doesnt match return an error
+		try:
+			msg, check = self.__recv()
+		except Exception as e:
+			print(e)
+			msg= "ERROR"
+			check=0
+		try:
+			if int(self.checksum(msg)) == int(check):
+				return(msg) # if checksum matches return message
+			elif check != 0:
+				print("\nfragmented msg: " + str(msg))
+				msg = self.defrag(msg, check)
+				if msg == -1:
+					print("Couldnt defrag message!")
 				else:
-					return(-1)
-			except Exception as e:
-				print(e)
-				print("checksum corrupted!")
-				print("fragmented msg: " + str(msg))
+					print("defragemented msg: " + str(msg))
+					return(msg)
+				return(-1) # if checksum doesnt match return an error
+			else:
 				return(-1)
+		except Exception as e:
+			print(e)
+			print("checksum corrupted!")
+			print("fragmented msg: " + str(msg))
+			return(-1)
 	
 	def checksum(self, msg):
 		sum = 0
 		for c in msg:
 			sum += ord(str(c))
 		return(sum)
+
+	def cleanup(self):
+		gpio.cleanup()
+		pass
