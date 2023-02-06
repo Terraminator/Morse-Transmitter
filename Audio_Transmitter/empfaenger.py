@@ -8,7 +8,7 @@ ontimer = 0
 offtimer = 0
 sequence = []
 
-# Wait until a sound is recieved
+# Wait until a sound is received
 while True:
 	if gpio.input(22) == 0:
 		break
