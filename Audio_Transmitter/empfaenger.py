@@ -24,7 +24,6 @@ while offtimer < 20000:
 			sequence.append(offtimer)
 		offtimer = 0
 		ontimer += 1
-		
 	else:
 		if ontimer != 0:
 			sequence.append(ontimer)
@@ -33,7 +32,6 @@ while offtimer < 20000:
 	time.sleep(0.0005)
 	
 print("Recieving no input")
-
 
 print("Recieved input:")
 print(sequence)
@@ -44,16 +42,13 @@ print("Cleaned input:")
 print(sequence)
 
 # Get approximate length of dit
-speed = (sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10
-speed = int(speed)
+speed = int((sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10)
 
 # Remove more short inputs
 sequence = [e for e in sequence if e > speed / 10]
 
-
 # Input lengths are converted into a usable string
 enc = ""
-
 for x in range(10,len(sequence)):
 	if x % 2 == 0:
 		if sequence[x] <= speed * 1.7:
