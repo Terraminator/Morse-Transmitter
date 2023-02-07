@@ -12,7 +12,7 @@ last20 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 while gpio.input(22) ==0:
 	continue
 
-print("Recieved sound, starting to listen")
+print("Received sound, starting to listen")
 # Listen to inputs
 
 while offtimer < 20000:
@@ -32,10 +32,10 @@ while offtimer < 20000:
 		offtimer +=1
 	time.sleep(0.0005)
 	
-print("Recieving no input")
+print("Receiving no input")
 
 
-print("Recieved input:")
+print("Received input:")
 print(sequence)
 # Remove most of the false inputs
 sequence = [e for e in sequence if e >19]
@@ -44,8 +44,7 @@ print("Cleaned input:")
 print(sequence)
 
 # Get approximate length of dit
-speed = (sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10
-speed = int(speed)
+speed = int((sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10)
 
 # Remove more short inputs
 sequence = [e for e in sequence if e > speed / 10]
