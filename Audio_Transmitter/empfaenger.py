@@ -12,7 +12,7 @@ last20 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 while gpio.input(22) ==0:
 	continue
 
-print("Received sound, starting to listen")
+print("Recieved sound, starting to listen")
 # Listen to inputs
 
 while offtimer < 20000:
@@ -32,10 +32,10 @@ while offtimer < 20000:
 		offtimer +=1
 	time.sleep(0.0005)
 	
-print("Receiving no input")
+print("Recieving no input")
 
 
-print("Received input:")
+print("Recieved input:")
 print(sequence)
 # Remove most of the false inputs
 sequence = [e for e in sequence if e >19]
@@ -44,34 +44,27 @@ print("Cleaned input:")
 print(sequence)
 
 # Get approximate length of dit
-speed = int((sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10)
+speed = (sequence[0]/3 + sequence[1]+ sequence[2] + sequence[3] + sequence[4]/3 + sequence[5]+sequence[6]+sequence[7]+sequence[8]/3+sequence[9]/3)/10
+speed = int(speed)
 
 # Remove more short inputs
 sequence = [e for e in sequence if e > speed / 10]
 
-# Adjust the inputs to speed
-for i in range(2,len(sequence)):
-	if sequence[i] < speed * 1.7 :
-		sequence[i] = speed
-	elif sequence[i] >= speed * 1.7 and sequence[i] < speed * 5:
-		sequence[i] = speed * 3
-	elif sequence[i] >= sequence[0] * 5:
-		sequence[i] = speed * 7
-		
+
 # Input lengths are converted into a usable string
 enc = ""
 
 for x in range(10,len(sequence)):
 	if x % 2 == 0:
-		if sequence[x] == speed:
+		if sequence[x] <= speed * 1.7:
 			enc += "."
-		elif sequence[x] == speed * 3 or sequence[x] == speed * 7:
+		elif sequence[x] > speed * 1.7:
 			enc += "-"
 	
 	elif x % 2 == 1:
-		if sequence[x] == speed * 3:
+		if sequence[x] > speed * 1.7 and sequence[x] <= speed * 5:
 			enc += "/"
-		elif sequence[x] > speed *3:
+		elif sequence[x] > speed *5:
 			enc += "|"
 print("Translation: \n" + enc)
 
