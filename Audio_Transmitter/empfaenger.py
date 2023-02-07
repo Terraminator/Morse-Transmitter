@@ -31,7 +31,7 @@ while True:
 		print(sequence)
 		# Stop listening
 		if offtimer > sequence[0] * 25:
-			print("Recieving no input")
+			print("Receiving no input")
 			break
 	time.sleep(0.0001)
 
