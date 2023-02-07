@@ -61,7 +61,7 @@ for x in range(10,len(sequence)):
 			enc += "/"
 		elif sequence[x] > speed *5:
 			enc += "|"
-print("Translation: \n" + enc)
+print("Morse Code: \n" + enc)
 
 
 # Translation begins here
