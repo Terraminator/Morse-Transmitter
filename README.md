@@ -37,8 +37,6 @@ Beide Transmitter schafften wir unabhängig voneinander, sodass wir später die 
 
 
 ## Lichtübertragung
-### demo video:
-<a>https://youtu.be/I8XN870DwOY</a>
 
 Der Morse Transmitter basiert auf einer LED, welche an und abgeschaltet wird und einem Fotowiederstand (LDR), welcher an einen GPIO-Pin eines Raspberry Pi angeschlossen 
 ist.
@@ -99,7 +97,6 @@ Jedoch wird dies ein Stück weit durch die Defragmentierung wieder wettgemacht, 
 ## Audioübertragung
 
 Dieser Transmitter basiert auf eine Übertragung über Schall. Ein Schallsensor und aktiver Buzzer wird jeweils an einen Raspberry PI angeschlossen. 
-# bild vom raspberry einfügen
 
 Wie bei der Übertragung durch Licht wird dabei erstmals die Nachricht nach der Eingabe in dem Senderprogramm audiosender.py in Morse-Code verschlüsselt. Nach jedem Buchstaben wird ein "/" angehängt, Leerzeichen werden mit "|" ersetzt. Diese Zeichen stellen die verschiedenen Pausen dar.
 Man kann die Geschwindigkeit eines kurzen Tones (Dit) in Millisekunden bestimmen, wovon alle anderen Tonlängen ermittelt werden. Lange Töne und Pausen zwischen
