@@ -87,9 +87,9 @@ class Transmitter:
 		for w in msg.upper().split():
 			if w not in words:
 				try:
-					int(w)
+					int(w.strip("?!().,-/"))
 				except:
-					unknown.append(w)
+					unknown.append(w.strip("?!().,-/"))
 		return(unknown)
 
 	def __check(self, guess, check):
