@@ -86,7 +86,10 @@ class Transmitter:
 		unknown = []
 		for w in msg.upper().split():
 			if w not in words:
-				unknown.append(w)
+				try:
+					int(w)
+				except:
+					unknown.append(w)
 		return(unknown)
 
 	def __check(self, guess, check):
